@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace BehavioralDialogue
+namespace RuntimeGraphFramework
 {
     public interface IDialogueContext : IParameterContext
     {

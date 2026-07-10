@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace BehavioralDialogue.Nodes
+namespace RuntimeGraphFramework
 {
     public abstract class RuntimeNode : ScriptableObject
     {

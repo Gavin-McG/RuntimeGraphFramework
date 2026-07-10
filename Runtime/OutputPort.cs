@@ -1,8 +1,7 @@
 ﻿using System;
-using BehavioralDialogue.Nodes;
 using UnityEngine;
 
-namespace BehavioralDialogue
+namespace RuntimeGraphFramework
 {
     [Serializable]
     public abstract class OutputPort

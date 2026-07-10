@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BehavioralDialogue
+namespace RuntimeGraphFramework
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class PortTypeCastAttribute : Attribute

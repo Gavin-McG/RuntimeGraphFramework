@@ -2,7 +2,7 @@
     "name": "RuntimeGraphFramework.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:511e81731d38058438dd4efb9007351c"
+        "RuntimeGraphFramework"
     ],
     "includePlatforms": [
         "Editor"

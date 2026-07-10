@@ -5,7 +5,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace BehavioralDialogue
+namespace RuntimeGraphFramework
 {
     public static class PortTypeCastManager
     {

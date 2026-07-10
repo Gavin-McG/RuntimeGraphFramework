@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace BehavioralDialogue
+namespace RuntimeGraphFramework
 {
     public interface IParameterContext
     {
