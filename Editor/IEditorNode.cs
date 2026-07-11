@@ -9,11 +9,8 @@ namespace RuntimeGraphFramework.Editor
         void ClearData();
         T GetRuntimeNode(DialogueImportContext context);
         
-        OutputPort GetRuntimeOutputPort(DialogueImportContext context, IPort port);
-        OutputPortReference GetRuntimeOutputPortReference(DialogueImportContext context, IPort port);
-        
-        InputPort GetRuntimeInputPort(DialogueImportContext context, IPort port);
-        InputPortReference GetRuntimeInputPortReference(DialogueImportContext context, IPort port);
+        bool TryGetOutputPortIndex(IPort port, out int portIndex);
+        bool TryGetInputPortIndex(IPort port, out int portIndex);
         
         IEnumerable<T> GetNodes();
     }

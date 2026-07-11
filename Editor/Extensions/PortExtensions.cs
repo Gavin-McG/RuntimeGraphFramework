@@ -7,73 +7,28 @@ namespace RuntimeGraphFramework.Editor
 {
     public static class PortExtensions
     {
-        public static InputPort CreateConstantInputPort<TGraph>(Hash128 portId, Type type, object value)
+        public static InputPort CreateConstantInputPort<TGraph>(Hash128 portId, object value)
         {
-            if (type == typeof(int))
-                return new InputPort<int, TGraph>(value is int i ? i : 0, portId);
-
-            if (type == typeof(float))
-                return new InputPort<float, TGraph>(value is float f ? f : 0, portId);
-
-            if (type == typeof(string))
-                return new InputPort<string, TGraph>(value as string, portId);
-
-            if (type == typeof(bool))
-                return new InputPort<bool, TGraph>(value is bool b && b, portId);
-            
-            if (type == typeof(GameObject))
-                return new InputPort<GameObject, TGraph>(value is GameObject g ? g : null, portId);
-            
-            if (type == typeof(Color))
-                return new InputPort<Color, TGraph>(value is Color c ? c : Color.white, portId);
-
-            throw new NotSupportedException($"Unsupported InputPort type '{type}'");
+            var portType = value.GetType();
+            var inputPortType = typeof(InputPort<,>).MakeGenericType(portType, typeof(TGraph));
+            var constructorArguments = new object[] { value, portId };
+            return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
         }
         
-        private static InputPort CreateVariableInputPort<TGraph>(Hash128 portId, Type type, string variableName)
+        private static InputPort CreateVariableInputPort<TGraph>(Hash128 portId, IVariable variable)
         {
-            if (type == typeof(int))
-                return new InputPort<int, TGraph>(portId, variableName);
-
-            if (type == typeof(float))
-                return new InputPort<float, TGraph>(portId, variableName);
-
-            if (type == typeof(string))
-                return new InputPort<string, TGraph>(portId, variableName);
-
-            if (type == typeof(bool))
-                return new InputPort<bool, TGraph>(portId, variableName);
-            
-            if (type == typeof(GameObject))
-                return new InputPort<GameObject, TGraph>(portId, variableName);
-            
-            if (type == typeof(Color))
-                return new InputPort<Color, TGraph>(portId, variableName);
-
-            throw new NotSupportedException($"Unsupported InputPort type '{type}'");
+            var portType = variable.DataType;
+            var inputPortType = typeof(InputPort<,>).MakeGenericType(portType, typeof(TGraph));
+            var constructorArguments = new object[] { portId, variable.Name };
+            return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
         }
 
-        private static InputPort CreatePortReferenceInputPort<TGraph>(Hash128 portId, Type type, OutputPortReference portReference)
+        private static InputPort CreatePortReferenceInputPort<TGraph>(Hash128 portId, OutputPortReference portReference)
         {
-            if (type == typeof(int))
-                return new InputPort<int, TGraph>(portId, portReference);
-
-            if (type == typeof(float))
-                return new InputPort<float, TGraph>(portId, portReference);
-
-            if (type == typeof(string))
-                return new InputPort<string, TGraph>(portId, portReference);
-
-            if (type == typeof(bool))
-                return new InputPort<bool, TGraph>(portId, portReference);
-            
-            if (type == typeof(GameObject))
-                return new InputPort<GameObject, TGraph>(portId, portReference);
-            
-            if (type == typeof(Color))
-                return new InputPort<Color, TGraph>(portId, portReference);
-
-            throw new NotSupportedException($"Unsupported InputPort type '{type}'");
+            var portType = portReference.DataType;
+            var inputPortType = typeof(InputPort<,>).MakeGenericType(portType, typeof(TGraph));
+            var constructorArguments = new object[] { portId, portReference };
+            return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
         }
 
         public static OutputPort CreateRuntimeOutputPort(this IPort port, RuntimeNode node)
@@ -103,18 +58,24 @@ namespace RuntimeGraphFramework.Editor
             if (!port.IsConnected)
             {
                 port.TryGetValue(out object value);
-                return CreateConstantInputPort<TGraph>(port.ID, value.GetType(), value);
+                return CreateConstantInputPort<TGraph>(port.ID, value);
             }
 
             // Get the node connected to the port
             IPort connectedPort = port.FirstConnectedPort;
             INode node = connectedPort.GetNode();
             
+            // Check for error Node
+            if (node == null)
+            {
+                throw new ArgumentException("A missing node is connected in the Graph. Please resolve before saving");
+            }
+            
             // Constant
             if (node is IConstantNode constantNode)
             {
                 constantNode.TryGetValue(out object value);
-                return CreateConstantInputPort<TGraph>(port.ID, value.GetType(), value);
+                return CreateConstantInputPort<TGraph>(port.ID, value);
             }
 
             // Variable
@@ -127,12 +88,12 @@ namespace RuntimeGraphFramework.Editor
                     if (context.validVariables.Contains(variable))
                     {
                         // Create Variable port if Variable is valid
-                        return CreateVariableInputPort<TGraph>(port.ID, variable.DataType, variable.Name);
+                        return CreateVariableInputPort<TGraph>(port.ID, variable);
                     }
                     
                     // Convert Variable to constant if Variable isn't valid
                     variable.TryGetDefaultValue(out object defaultValue);
-                    return CreateConstantInputPort<TGraph>(port.ID, variable.DataType, defaultValue);
+                    return CreateConstantInputPort<TGraph>(port.ID, defaultValue);
                 }
                 else if (variable.VariableKind == VariableKind.Input)
                 {
@@ -151,10 +112,13 @@ namespace RuntimeGraphFramework.Editor
             }
 
             // Custom node
-            if (node is IEditorNode<RuntimeNode> dataNode)
+            if (node is IEditorNode<RuntimeNode>)
             {
-                OutputPortReference portReference = dataNode.GetRuntimeOutputPortReference(context, connectedPort);
-                return CreatePortReferenceInputPort<TGraph>(port.ID, portReference.DataType, portReference);
+                OutputPortReference portReference = connectedPort.GetRuntimeOutputPortReference(context);
+                if (portReference != null) 
+                    return CreatePortReferenceInputPort<TGraph>(port.ID, portReference);
+                else
+                    return CreateConstantInputPort<TGraph>(port.ID, string.Empty);
             }
             
             // Subgraph
@@ -173,7 +137,7 @@ namespace RuntimeGraphFramework.Editor
                 return output;
             }
 
-            throw new ArgumentException("Could not resolve InputPort of port");
+            throw new ArgumentException($"Could not resolve InputPort of port for node {node.GetType().Name}");
         }
         
         public static ControlNode GetConnectedControlNode(this IPort port, DialogueImportContext context)
@@ -224,6 +188,64 @@ namespace RuntimeGraphFramework.Editor
             }
             
             return null;
+        }
+        
+        public static OutputPortReference GetRuntimeOutputPortReference(this IPort port, DialogueImportContext context)
+        {
+            if (port == null) return null;
+            
+            // Check that the port is of the correct type
+            if (port.Direction != PortDirection.Output)
+                throw new ArgumentException("GetRuntimeOutputPortReference: Port direction must be Output");
+            
+            // Get port reference from EditorNode
+            var node = port.GetNode();
+            if (node is IEditorNode<RuntimeNode> editorNode)
+            {
+                if (!editorNode.TryGetOutputPortIndex(port, out int portIndex)) return null;
+                var runtimeNode = editorNode.GetRuntimeNode(context);
+                return new OutputPortReference(runtimeNode, portIndex);
+            }
+            
+            // Get port reference from EditorContextNode
+            if (node is BlockNode blockNode && blockNode.ContextNode is IEditorNode<RuntimeNode> editorContextNode)
+            {
+                if (!editorContextNode.TryGetOutputPortIndex(port, out int portIndex)) return null;
+                var runtimeNode = editorContextNode.GetRuntimeNode(context);
+                return new OutputPortReference(runtimeNode, portIndex);
+            }
+            
+            // Could not get port reference
+            throw new ArgumentException("GetRuntimeOutputPortReference: Port must belong to an IEditorNode");
+        }
+
+        public static InputPortReference GetRuntimeInputPortReference(this IPort port, DialogueImportContext context)
+        {
+            if (port == null) return null;
+            
+            // Check that the port is of the correct type
+            if (port.Direction != PortDirection.Input)
+                throw new ArgumentException("GetRuntimeInputPortReference: Port direction must be Input");
+            
+            // Get port reference from EditorNode
+            var node = port.GetNode();
+            if (node is IEditorNode<RuntimeNode> editorNode)
+            {
+                if (!editorNode.TryGetInputPortIndex(port, out int portIndex)) return null;
+                var runtimeNode = editorNode.GetRuntimeNode(context);
+                return new InputPortReference(runtimeNode, portIndex);
+            }
+            
+            // Get port reference from EditorContextNode
+            if (node is BlockNode blockNode && blockNode.ContextNode is IEditorNode<RuntimeNode> editorContextNode)
+            {
+                if (!editorContextNode.TryGetInputPortIndex(port, out int portIndex)) return null;
+                var runtimeNode = editorContextNode.GetRuntimeNode(context);
+                return new InputPortReference(runtimeNode, portIndex);
+            }
+            
+            // Could not get port reference
+            throw new ArgumentException("GetRuntimeInputPortReference: Port must belong to an IEditorNode");
         }
     }
 }

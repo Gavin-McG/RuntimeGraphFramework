@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using RuntimeGraphFramework.Editor;
 using Unity.GraphToolkit.Editor;
+using UnityEngine;
 
 namespace RuntimeGraphFramework
 {
+    [Serializable]
     public abstract class EditorGraph<TGraph> : Graph where TGraph : RuntimeGraph
     {
         public bool CanTypesConnect(Type outputType, Type inputType)
@@ -23,7 +25,7 @@ namespace RuntimeGraphFramework
             // Check for Recursion of data ports
             INode outputNode = output.GetNode();
             INode inputNode = input.GetNode();
-            if (!outputNode.WouldConnectionCreateCycle(inputNode)) return false;
+            if (outputNode == null || inputNode == null || !outputNode.WouldConnectionCreateCycle(inputNode)) return false;
             
             // Prevent Multiple Untyped input Variable connections
             if (outputNode is IVariableNode variableNode)

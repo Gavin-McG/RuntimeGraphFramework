@@ -68,6 +68,7 @@ namespace RuntimeGraphFramework
                 .Compile();
         }
         
+        [InitializeOnLoadMethod]
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {

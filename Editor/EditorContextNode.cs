@@ -14,6 +14,9 @@ namespace RuntimeGraphFramework.Editor
         private TRuntimeNode _node;
         private Dictionary<Hash128, TRuntimeNode> _subgraphNodes = new();
         
+        private bool _portsRegistered = false;
+        private List<IPort> _outputPorts = new();
+        private List<IPort> _inputPorts = new();
         private Dictionary<IPort, int> _outputPortIndices = new();
         private Dictionary<IPort, int> _inputPortIndices = new();
         
@@ -21,7 +24,32 @@ namespace RuntimeGraphFramework.Editor
         {
             _node = null;
             _subgraphNodes.Clear();
+
+            _portsRegistered = false;
+            _outputPorts.Clear();
+            _inputPorts.Clear();
             _outputPortIndices.Clear();
+            _inputPortIndices.Clear();
+        }
+
+        private void TryRegisterPorts()
+        {
+            if (_portsRegistered) return;
+            _portsRegistered = true;
+            
+            // Collect all Typed ports
+            _outputPorts = GetOutputPorts().Where(port => port.DataType != typeof(Untyped)).ToList();
+            _inputPorts = this.GetBlockInputPorts().Where(port => port.DataType != typeof(Untyped)).ToList();
+            
+            // Create index dictionary
+            foreach (var port in _outputPorts)
+            {
+                _outputPortIndices[port] = _outputPortIndices.Count;
+            }
+            foreach (var port in _inputPorts)
+            {
+                _inputPortIndices[port] = _inputPortIndices.Count;
+            }
         }
 
         private TRuntimeNode GetRegisteredNode(DialogueImportContext context)
@@ -51,57 +79,35 @@ namespace RuntimeGraphFramework.Editor
             RegisterNode(context, newNode);
             
             // Create ports
-            foreach (var port in this.GetBlockInputPorts().Where(port => port.DataType != typeof(Untyped)))
+            TryRegisterPorts();
+            foreach (var port in _inputPorts)
             {
                 var InputPort = port.CreateRuntimeInputPort<TGraph>(context);
-                _inputPortIndices[port] = newNode.inputPorts.Count;
                 newNode.inputPorts.Add(InputPort);
             }
-            if (newNode is RuntimeNode dataNode)
+            foreach (var port in _outputPorts)
             {
-                foreach (var port in GetOutputPorts().Where(port => port.DataType != typeof(Untyped)))
-                {
-                    var OutputPort = port.CreateRuntimeOutputPort(dataNode);
-                    _outputPortIndices[port] = dataNode.outputPorts.Count;
-                    dataNode.outputPorts.Add(OutputPort);
-                }
+                var OutputPort = port.CreateRuntimeOutputPort(newNode);
+                newNode.outputPorts.Add(OutputPort);
             }
 
             // Initialize Node Object
             InitializeRuntimeNode(context, newNode);
             return newNode;
         }
-
-        public OutputPort GetRuntimeOutputPort(DialogueImportContext context, IPort port)
+        
+        public bool TryGetOutputPortIndex(IPort port, out int portIndex)
         {
-            if (port == null) return null;
-            var node = GetRuntimeNode(context);
-            var index = _outputPortIndices.GetValueOrDefault(port);
-            return node.outputPorts[index];
+            TryRegisterPorts();
+            return _outputPortIndices.TryGetValue(port, out portIndex);
+        }
+
+        public bool TryGetInputPortIndex(IPort port, out int portIndex)
+        {
+            TryRegisterPorts();
+            return _inputPortIndices.TryGetValue(port, out portIndex);
         }
         
-        public OutputPortReference GetRuntimeOutputPortReference(DialogueImportContext context, IPort port)
-        {
-            if (port == null) return null;
-            var node = GetRuntimeNode(context);
-            return new OutputPortReference(node, _outputPortIndices[port]);
-        }
-
-        public InputPort GetRuntimeInputPort(DialogueImportContext context, IPort port)
-        {
-            if (port == null) return null;
-            var node = GetRuntimeNode(context);
-            var index = _inputPortIndices.GetValueOrDefault(port);
-            return node.inputPorts[index];
-        }
-
-        public InputPortReference GetRuntimeInputPortReference(DialogueImportContext context, IPort port)
-        {
-            if (port == null) return null;
-            var node = GetRuntimeNode(context);
-            return new InputPortReference(node, _inputPortIndices[port]);
-        }
-
         public IEnumerable<TRuntimeNode> GetNodes()
         {
             if (_node != null) yield return _node;
