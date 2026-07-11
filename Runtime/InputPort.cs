@@ -3,10 +3,10 @@ using UnityEngine;
 
 namespace RuntimeGraphFramework
 {
-    public enum InputPortType
+    public enum InputPortSource
     {
         Constant,
-        Parameter,
+        Variable,
         PortReference,
     }
 
@@ -14,10 +14,10 @@ namespace RuntimeGraphFramework
     public abstract class InputPort
     {
         [SerializeField] protected Hash128 portID;
-        [SerializeField] protected InputPortType portType;
+        [SerializeField] protected InputPortSource portSource;
         
         public Hash128 PortID => portID;
-        public InputPortType PortType => portType;
+        public InputPortSource PortSource => portSource;
         public abstract OutputPortReference PortReference { get; }
         public abstract Type DataType { get; }
         
@@ -28,7 +28,7 @@ namespace RuntimeGraphFramework
     public class InputPort<TOutput, TGraph> : InputPort
     {
         [SerializeField] private TOutput constantValue;
-        [SerializeField] protected string parameterName;
+        [SerializeField] protected string variableName;
         [SerializeField] private OutputPortReference portReference;
         
         public override OutputPortReference PortReference => portReference;
@@ -37,27 +37,27 @@ namespace RuntimeGraphFramework
         public InputPort(TOutput constantValue, Hash128 portID)
         {
             this.portID = portID;
-            portType = InputPortType.Constant;
+            portSource = InputPortSource.Constant;
             this.constantValue = constantValue;
         }
 
-        public InputPort(Hash128 portID, string parameterName)
+        public InputPort(Hash128 portID, string variableName)
         {
             this.portID = portID;
-            portType = InputPortType.Parameter;
-            this.parameterName = parameterName;
+            portSource = InputPortSource.Variable;
+            this.variableName = variableName;
         }
 
         public InputPort(Hash128 portID, OutputPortReference portReference)
         {
             this.portID = portID;
-            portType = InputPortType.PortReference;
+            portSource = InputPortSource.PortReference;
             this.portReference = portReference;
         }
 
-        private TOutput GetParameter(IParameterContext parameters)
+        private TOutput GetVariable(IVariableContext variables)
         {
-            if (parameters.TryGetValue<TOutput>(parameterName, out var value)) return value;
+            if (variables.TryGetVariable<TOutput>(variableName, out var value)) return value;
             return constantValue;
         }
         
@@ -68,11 +68,11 @@ namespace RuntimeGraphFramework
         
         public override TInput GetValue<TInput>(IQueryContext context)
         {
-            var value = portType switch
+            var value = portSource switch
             {
-                InputPortType.Constant => constantValue,
-                InputPortType.Parameter => GetParameter(context),
-                InputPortType.PortReference => GetConnectedPort().GetValue<TOutput>(context),
+                InputPortSource.Constant => constantValue,
+                InputPortSource.Variable => GetVariable(context),
+                InputPortSource.PortReference => GetConnectedPort().GetValue<TOutput>(context),
                 _ => default,
             };
 

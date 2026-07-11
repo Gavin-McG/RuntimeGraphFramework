@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 
 namespace RuntimeGraphFramework.Editor
 {
-    [CustomPropertyDrawer(typeof(Parameter))]
-    public class ParameterDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(RuntimeVariable))]
+    public class VariableDrawer : PropertyDrawer
     {
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
@@ -13,7 +13,6 @@ namespace RuntimeGraphFramework.Editor
             var valueProp = wrapperProp.FindPropertyRelative("_value");
             
             VisualElement root = new VisualElement();
-            //root.text = property.displayName;
             
             var sourceField = new PropertyField(valueProp);
             sourceField.BindProperty(valueProp);

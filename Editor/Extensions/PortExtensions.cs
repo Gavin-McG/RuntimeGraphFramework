@@ -30,25 +30,25 @@ namespace RuntimeGraphFramework.Editor
             throw new NotSupportedException($"Unsupported InputPort type '{type}'");
         }
         
-        private static InputPort CreateParameterInputPort<TGraph>(Hash128 portId, Type type, string parameterName)
+        private static InputPort CreateVariableInputPort<TGraph>(Hash128 portId, Type type, string variableName)
         {
             if (type == typeof(int))
-                return new InputPort<int, TGraph>(portId, parameterName);
+                return new InputPort<int, TGraph>(portId, variableName);
 
             if (type == typeof(float))
-                return new InputPort<float, TGraph>(portId, parameterName);
+                return new InputPort<float, TGraph>(portId, variableName);
 
             if (type == typeof(string))
-                return new InputPort<string, TGraph>(portId, parameterName);
+                return new InputPort<string, TGraph>(portId, variableName);
 
             if (type == typeof(bool))
-                return new InputPort<bool, TGraph>(portId, parameterName);
+                return new InputPort<bool, TGraph>(portId, variableName);
             
             if (type == typeof(GameObject))
-                return new InputPort<GameObject, TGraph>(portId, parameterName);
+                return new InputPort<GameObject, TGraph>(portId, variableName);
             
             if (type == typeof(Color))
-                return new InputPort<Color, TGraph>(portId, parameterName);
+                return new InputPort<Color, TGraph>(portId, variableName);
 
             throw new NotSupportedException($"Unsupported InputPort type '{type}'");
         }
@@ -127,7 +127,7 @@ namespace RuntimeGraphFramework.Editor
                     if (context.validVariables.Contains(variable))
                     {
                         // Create Variable port if Variable is valid
-                        return CreateParameterInputPort<TGraph>(port.ID, variable.DataType, variable.Name);
+                        return CreateVariableInputPort<TGraph>(port.ID, variable.DataType, variable.Name);
                     }
                     
                     // Convert Variable to constant if Variable isn't valid

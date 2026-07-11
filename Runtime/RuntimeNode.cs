@@ -17,7 +17,7 @@ namespace RuntimeGraphFramework
 
         public virtual bool IsConstantNode()
         {
-            return inputPorts.All(port => port.PortType == InputPortType.Constant);
+            return inputPorts.All(port => port.PortSource == InputPortSource.Constant);
         }
         
         public void QueryNode(IQueryContext context)

@@ -9,15 +9,15 @@ namespace RuntimeGraphFramework.Editor
     {
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
-            var typeProp = property.FindPropertyRelative("portType");
+            var typeProp = property.FindPropertyRelative("portSource");
             
-            InputPortType inputPortType = (InputPortType)typeProp.intValue;
+            InputPortSource inputPortSource = (InputPortSource)typeProp.intValue;
 
-            var sourceProp = inputPortType switch
+            var sourceProp = inputPortSource switch
             {
-                InputPortType.Constant => property.FindPropertyRelative("constantValue"),
-                InputPortType.Parameter => property.FindPropertyRelative("parameterName"),
-                InputPortType.PortReference => property.FindPropertyRelative("portReference"),
+                InputPortSource.Constant => property.FindPropertyRelative("constantValue"),
+                InputPortSource.Variable => property.FindPropertyRelative("variableName"),
+                InputPortSource.PortReference => property.FindPropertyRelative("portReference"),
                 _ => null
             };
             

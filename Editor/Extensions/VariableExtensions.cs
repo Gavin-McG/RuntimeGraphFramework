@@ -14,43 +14,43 @@ namespace RuntimeGraphFramework.Editor
             return variableNodes;
         }
 
-        public static Parameter GetParameter(this IVariable variable)
+        public static RuntimeVariable GetRuntimeVariable(this IVariable variable)
         {
             Type variableType = variable.DataType;
             if (variableType == typeof(int))
             {
                 // Integer variable
                 variable.TryGetDefaultValue(out int value);
-                return Parameter.CreateParameter(value);
+                return RuntimeVariable.CreateVariable(value);
             }
             if (variableType == typeof(float))
             {
                 // Float variable
                 variable.TryGetDefaultValue(out float value);
-                return Parameter.CreateParameter(value);
+                return RuntimeVariable.CreateVariable(value);
             }
             if (variableType == typeof(string))
             {
                 // String variable
                 variable.TryGetDefaultValue(out string value);
-                return Parameter.CreateParameter(value);
+                return RuntimeVariable.CreateVariable(value);
             }
             if (variableType == typeof(bool))
             {
                 // GameObject Variable
                 variable.TryGetDefaultValue(out bool value);
-                return Parameter.CreateParameter(value);
+                return RuntimeVariable.CreateVariable(value);
             }
             if (variableType == typeof(GameObject))
             {
                 // GameObject Variable
                 variable.TryGetDefaultValue(out GameObject value);
-                return Parameter.CreateParameter(value);
+                return RuntimeVariable.CreateVariable(value);
             }
             if (variableType == typeof(Color))
             {
                 variable.TryGetDefaultValue(out Color value);
-                return Parameter.CreateParameter(value);
+                return RuntimeVariable.CreateVariable(value);
             }
             throw new ArgumentException("Unsupported variable type: " + variableType);
         }

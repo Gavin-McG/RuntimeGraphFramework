@@ -57,5 +57,42 @@ namespace RuntimeGraphFramework.Editor
             return set;
         }
 
+        public static List<string> GetRequiredVariables(this INode node)
+        {
+            void GetRequiredVariablesHelper(INode node, HashSet<string> variableNames, HashSet<Hash128> visited)
+            {
+                if (node == null || !visited.Add(node.ID)) return;
+                if (node is IVariableNode variableNode)
+                {
+                    variableNames.Add(variableNode.Variable.Name);
+                    return;
+                }
+
+                var inputPorts = node.GetInputPorts();
+                foreach (var input in inputPorts)
+                {
+                    if (input.DataType == typeof(Untyped)) continue;
+                    var connectedPorts = new List<IPort>();
+                    input.GetConnectedPorts(connectedPorts);
+                    foreach (var connectedPort in connectedPorts)
+                    {
+                        GetRequiredVariablesHelper(connectedPort.GetNode(), variableNames, visited);
+                    }
+                }
+
+                if (node is ContextNode contextNode)
+                {
+                    foreach (var blockNode in contextNode.BlockNodes)
+                    {
+                        GetRequiredVariablesHelper(blockNode, variableNames, visited);
+                    }
+                }
+            }
+            
+            HashSet<string> set = new HashSet<string>();
+            HashSet<Hash128> visited = new HashSet<Hash128>();
+            GetRequiredVariablesHelper(node, set, visited);
+            return set.ToList();
+        }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace RuntimeGraphFramework
 {
-    public interface IQueryContext : IParameterContext
+    public interface IQueryContext : IVariableContext
     {
         Hash128 QueryID { get; }
     }
