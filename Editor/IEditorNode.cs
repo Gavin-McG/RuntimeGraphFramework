@@ -3,7 +3,8 @@ using Unity.GraphToolkit.Editor;
 
 namespace RuntimeGraphFramework.Editor
 {
-    public interface IEditorNode<out T> where T : RuntimeNode
+    public interface IEditorNode<out T> 
+        where T : RuntimeNode
     {
         void ClearData();
         T GetRuntimeNode(DialogueImportContext context);

@@ -175,5 +175,55 @@ namespace RuntimeGraphFramework.Editor
 
             throw new ArgumentException("Could not resolve InputPort of port");
         }
+        
+        public static ControlNode GetConnectedControlNode(this IPort port, DialogueImportContext context)
+        {
+            if (port == null) return null;
+            if (!port.IsConnected) return null;
+            var connectedPort = port.FirstConnectedPort;
+            INode connectedNode = connectedPort.GetNode();
+            
+            // Direct Connection
+            if (connectedNode is IEditorNode<ControlNode> controlNode)
+            {
+                return controlNode.GetRuntimeNode(context);
+            }
+            
+            // Connection into Subgraph
+            if (connectedNode is ISubgraphNode subgraphNode)
+            {
+                // Get the Connected Port within the Subgraph
+                if (context.currentSubgraph != null) throw new Exception("Attempting to Enter Nested Subgraph");
+                var inputVariable = subgraphNode.GetInputVariableOfPort(connectedPort);
+                var inputvariableNode = inputVariable.GetNodes().FirstOrDefault(node => node.IsConnected);
+                var variablePort = inputvariableNode?.GetOutputPort(0);
+                
+                // Get the Connected Control Node within the Subgraph
+                context.currentSubgraph = subgraphNode;
+                var output = variablePort.GetConnectedControlNode(context);
+                context.currentSubgraph = null;
+                
+                return output;
+            }
+            
+            // Connection out of Subgraph
+            if (connectedNode is IVariableNode outputVariableNode)
+            {
+                // Get the Connected Port out of the Subgraph
+                var currentSubgraph = context.currentSubgraph;
+                if (currentSubgraph == null) throw new Exception("Incorrectly attempting to Return from Subgraph");
+                var outputVariable = outputVariableNode.Variable;
+                var subgraphOutputPort = currentSubgraph.GetOutputPortOfVariable(outputVariable);
+                
+                // Get the Connected Control Node out of the Subgraph
+                context.currentSubgraph = null;
+                var output = subgraphOutputPort.GetConnectedControlNode(context);
+                context.currentSubgraph = currentSubgraph;
+                
+                return output;
+            }
+            
+            return null;
+        }
     }
 }

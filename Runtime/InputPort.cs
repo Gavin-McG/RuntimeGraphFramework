@@ -21,7 +21,7 @@ namespace RuntimeGraphFramework
         public abstract OutputPortReference PortReference { get; }
         public abstract Type DataType { get; }
         
-        public abstract TInput GetValue<TInput>(IDialogueContext context);
+        public abstract TInput GetValue<TInput>(IQueryContext context);
     }
     
     [Serializable]
@@ -66,7 +66,7 @@ namespace RuntimeGraphFramework
             return portReference.GetOutputPort();
         }
         
-        public override TInput GetValue<TInput>(IDialogueContext context)
+        public override TInput GetValue<TInput>(IQueryContext context)
         {
             var value = portType switch
             {

@@ -23,7 +23,7 @@ namespace RuntimeGraphFramework
         public RuntimeNode Node => node;
         public Type DataType => GetOutputPort().DataType;
         
-        public T GetValue<T>(IDialogueContext context) => GetOutputPort().GetValue<T>(context);
+        public T GetValue<T>(IQueryContext context) => GetOutputPort().GetValue<T>(context);
         public void SetValue<T>(T value) => GetOutputPort().SetValue(value);
     }
 }

@@ -7,7 +7,9 @@ using UnityEngine;
 namespace RuntimeGraphFramework.Editor
 {
     [Serializable]
-    public abstract class EditorNode<TRuntimeNode, TGraph> : Node, IEditorNode<TRuntimeNode> where TRuntimeNode : RuntimeNode
+    public abstract class EditorNode<TRuntimeNode, TGraph> : Node, IEditorNode<TRuntimeNode> 
+        where TRuntimeNode : RuntimeNode 
+        where TGraph : RuntimeGraph
     {
         private TRuntimeNode _node;
         private Dictionary<Hash128, TRuntimeNode> _subgraphNodes = new();

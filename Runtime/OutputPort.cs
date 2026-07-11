@@ -10,7 +10,7 @@ namespace RuntimeGraphFramework
         public abstract Type DataType { get; }
 
         public abstract void SetValue<U>(U value);
-        public abstract U GetValue<U>(IDialogueContext context);
+        public abstract U GetValue<U>(IQueryContext context);
     }
     
     [Serializable]
@@ -34,7 +34,7 @@ namespace RuntimeGraphFramework
             currentValue = (T)(object)value;
         }
 
-        public override U GetValue<U>(IDialogueContext context)
+        public override U GetValue<U>(IQueryContext context)
         {
             if (!typeof(U).IsAssignableFrom(typeof(T))) throw new ArgumentException("Incorrect OutputPort Type");
             node.QueryNode(context);

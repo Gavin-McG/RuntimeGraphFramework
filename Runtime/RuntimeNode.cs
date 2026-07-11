@@ -20,7 +20,7 @@ namespace RuntimeGraphFramework
             return inputPorts.All(port => port.PortType == InputPortType.Constant);
         }
         
-        public void QueryNode(IDialogueContext context)
+        public void QueryNode(IQueryContext context)
         {
             var currentQueryID = context.QueryID;
             if (previousQueryID == currentQueryID) return;
@@ -29,6 +29,6 @@ namespace RuntimeGraphFramework
             PopulateOutputs(context);
         }
         
-        protected virtual void PopulateOutputs(IDialogueContext context) {}
+        protected virtual void PopulateOutputs(IQueryContext context) {}
     }
 }

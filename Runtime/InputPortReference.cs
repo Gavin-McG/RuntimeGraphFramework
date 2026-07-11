@@ -29,6 +29,6 @@ namespace RuntimeGraphFramework
         public RuntimeNode Node => node;
         public Type DataType => GetInputPort().DataType;
         
-        public TInput GetValue<TInput>(IDialogueContext context) => GetInputPort().GetValue<TInput>(context);
+        public TInput GetValue<TInput>(IQueryContext context) => GetInputPort().GetValue<TInput>(context);
     }
 }
