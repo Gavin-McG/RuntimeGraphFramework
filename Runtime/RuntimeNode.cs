@@ -11,6 +11,7 @@ namespace RuntimeGraphFramework
         [SerializeField] public Hash128 nodeID;
         [SerializeReference] public List<InputPort> inputPorts = new();
         [SerializeReference] public List<OutputPort> outputPorts = new();
+        [SerializeField] public bool hasUntypedPorts;
         
         private Hash128 previousQueryID;
         
@@ -22,7 +23,7 @@ namespace RuntimeGraphFramework
         public OutputPort GetOutputPort(int index) => outputPorts[index];
         public InputPort GetInputPort(int index) => inputPorts[index];
 
-        public virtual bool IsConstantNode() => inputPorts.All(port => port.PortSource == InputPortSource.Constant);
+        public virtual bool IsConstantNode() => inputPorts.All(port => port.PortSource == InputPortSource.Constant) && !hasUntypedPorts;
         
         protected virtual void UpdateNodeOutputs(IQueryContext context) {}
         

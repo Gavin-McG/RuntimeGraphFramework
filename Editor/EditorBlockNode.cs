@@ -5,54 +5,41 @@ using UnityEngine;
 
 namespace RuntimeGraphFramework.Editor
 {
-    public abstract class EditorBlockNode<TRuntimeNode, TGraph> : BlockNode, IEditorNode<TRuntimeNode>
+    [Serializable]
+    public abstract class EditorBlockNode<TRuntimeNode, TGraph> : BlockNode, IEditorBlockNode<TRuntimeNode>, IEditorNodeOwner<TRuntimeNode>
         where TRuntimeNode : RuntimeBlockNode
         where TGraph : RuntimeGraph
     {
-        private Dictionary<Hash128, TRuntimeNode> _nodes = new();
+        private EditorNodeModel<TRuntimeNode, TGraph> _nodeModel;
 
-        public void ClearData()
+        private EditorNodeModel<TRuntimeNode, TGraph> NodeModel
         {
-            _nodes.Clear();
+            get {
+                if (_nodeModel == null) _nodeModel = new EditorNodeModel<TRuntimeNode, TGraph>(this);
+                return _nodeModel;
+            }
         }
         
-        private TRuntimeNode GetRegisteredNode(DialogueImportContext context)
+        public void ClearData() => NodeModel.ClearData();
+        public TRuntimeNode GetRuntimeNode(DialogueImportContext context) => NodeModel.GetRuntimeNode(context);
+        public IEnumerable<TRuntimeNode> GetRuntimeNodes() => NodeModel.GetRuntimeNodes();
+        public bool TryGetInputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetInputPortIndex(port, out portIndex);
+        public bool TryGetOutputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetOutputPortIndex(port, out portIndex);
+
+        public void InitializeRuntimeNode(DialogueImportContext context, TRuntimeNode node)
         {
-            Hash128 nodeKey = default;
-            if (context.currentSubgraph != null) nodeKey = context.currentSubgraph.ID;
-            return _nodes.GetValueOrDefault(nodeKey);
+            // Set Context Node
+            if (ContextNode is not IEditorContextNode<RuntimeContextNode> editorContextNode)
+                Debug.LogError($"Node {ContextNode.GetType().Name} can only contain EditorBlockNodes if it is an EditorContextNode");
+            else
+                node.contextNode = editorContextNode.GetRuntimeNode(context);
+            
+            // Set block index
+            node.index = Index;
+            
+            DefineRuntimeNode(context, node);
         }
 
-        private void RegisterNode(DialogueImportContext context, TRuntimeNode node)
-        {
-            if (node == null) throw new ArgumentNullException(nameof(node));
-            Hash128 nodeKey = default;
-            if (context.currentSubgraph != null) nodeKey = context.currentSubgraph.ID;
-            _nodes[nodeKey] = node;
-        }
-
-        public TRuntimeNode GetRuntimeNode(DialogueImportContext context)
-        {
-            // Check if already Initialized
-            var currentNode = GetRegisteredNode(context);
-            if (currentNode != null) return currentNode;
-            
-            // Create instance
-            var newNode = ScriptableObject.CreateInstance<TRuntimeNode>();
-            RegisterNode(context, newNode);
-
-            // Set ID
-            newNode.nodeID = ID;
-            if (context.currentSubgraph != null) 
-                newNode.nodeID.Append(context.currentSubgraph.ID.ToString());
-            
-            // set ContextNode info
-            if (ContextNode is IEditorNode<RuntimeContextNode> contextNode)
-                newNode.contextNode = contextNode.GetRuntimeNode(context);
-            
-            // Initialize Node Object
-            InitializeRuntimeNode(context, ref newNode);
-            return newNode;
-        }
+        protected abstract void DefineRuntimeNode(DialogueImportContext context, TRuntimeNode node);
     }
 }
