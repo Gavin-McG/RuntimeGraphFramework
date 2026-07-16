@@ -37,7 +37,7 @@ namespace RuntimeGraphFramework
         public override U GetValue<U>(IQueryContext context)
         {
             if (!typeof(U).IsAssignableFrom(typeof(T))) throw new ArgumentException("Incorrect OutputPort Type");
-            node.QueryNode(context);
+            node.UpdateNode(context);
             return (U)(object)currentValue;
         }
     }

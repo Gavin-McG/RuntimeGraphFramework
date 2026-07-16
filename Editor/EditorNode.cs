@@ -11,8 +11,7 @@ namespace RuntimeGraphFramework.Editor
         where TRuntimeNode : RuntimeNode 
         where TGraph : RuntimeGraph
     {
-        private TRuntimeNode _node;
-        private Dictionary<Hash128, TRuntimeNode> _subgraphNodes = new();
+        private Dictionary<Hash128, TRuntimeNode> _nodes = new();
         
         private bool _portsRegistered = false;
         private List<IPort> _outputPorts = new();
@@ -22,8 +21,7 @@ namespace RuntimeGraphFramework.Editor
         
         public void ClearData()
         {
-            _node = null;
-            _subgraphNodes.Clear();
+            _nodes.Clear();
 
             _portsRegistered = false;
             _outputPorts.Clear();
@@ -55,16 +53,17 @@ namespace RuntimeGraphFramework.Editor
 
         private TRuntimeNode GetRegisteredNode(DialogueImportContext context)
         {
-            if (context.currentSubgraph == null && _node != null) return _node;
-            if (context.currentSubgraph != null) return _subgraphNodes.GetValueOrDefault(context.currentSubgraph.ID);
-            return null;
+            Hash128 nodeKey = default;
+            if (context.currentSubgraph != null) nodeKey = context.currentSubgraph.ID;
+            return _nodes.GetValueOrDefault(nodeKey);
         }
 
         private void RegisterNode(DialogueImportContext context, TRuntimeNode node)
         {
             if (node == null) throw new ArgumentNullException(nameof(node));
-            if (context.currentSubgraph == null) _node = node;
-            else _subgraphNodes[context.currentSubgraph.ID] = node;
+            Hash128 nodeKey = default;
+            if (context.currentSubgraph != null) nodeKey = context.currentSubgraph.ID;
+            _nodes[nodeKey] = node;
         }
 
         public TRuntimeNode GetRuntimeNode(DialogueImportContext context)
@@ -75,9 +74,12 @@ namespace RuntimeGraphFramework.Editor
             
             // Create instance
             var newNode = ScriptableObject.CreateInstance<TRuntimeNode>();
-            newNode.nodeID = ID;
-            if (context.currentSubgraph != null) newNode.nodeID.Append(context.currentSubgraph.ID.ToString());
             RegisterNode(context, newNode);
+            
+            // Set ID
+            newNode.nodeID = ID;
+            if (context.currentSubgraph != null) 
+                newNode.nodeID.Append(context.currentSubgraph.ID.ToString());
             
             // Create ports
             TryRegisterPorts();
@@ -96,6 +98,8 @@ namespace RuntimeGraphFramework.Editor
             InitializeRuntimeNode(context, newNode);
             return newNode;
         }
+        
+        public IEnumerable<TRuntimeNode> GetRuntimeNodes() =>_nodes.Select(node => node.Value);
 
         public bool TryGetOutputPortIndex(IPort port, out int portIndex)
         {
@@ -107,15 +111,6 @@ namespace RuntimeGraphFramework.Editor
         {
             TryRegisterPorts();
             return _inputPortIndices.TryGetValue(port, out portIndex);
-        }
-
-        public IEnumerable<TRuntimeNode> GetNodes()
-        {
-            if (_node != null) yield return _node;
-            foreach (var pair in _subgraphNodes)
-            {
-                if (pair.Value != null) yield return pair.Value;
-            }
         }
         
         protected abstract void InitializeRuntimeNode(DialogueImportContext context, TRuntimeNode node);

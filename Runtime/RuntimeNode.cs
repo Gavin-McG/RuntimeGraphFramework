@@ -5,30 +5,34 @@ using UnityEngine;
 
 namespace RuntimeGraphFramework
 {
-    public abstract class RuntimeNode : ScriptableObject
+    public abstract class RuntimeNode : ScriptableObject, IRuntimeNode
     {
+        [SerializeField] public RuntimeGraph graph;
         [SerializeField] public Hash128 nodeID;
         [SerializeReference] public List<InputPort> inputPorts = new();
         [SerializeReference] public List<OutputPort> outputPorts = new();
         
         private Hash128 previousQueryID;
-
-        public OutputPort GetOutputPort(int index) => outputPorts[index];
-
-        public virtual bool IsConstantNode()
-        {
-            return inputPorts.All(port => port.PortSource == InputPortSource.Constant);
-        }
         
-        public void QueryNode(IQueryContext context)
+        public RuntimeGraph Graph => graph;
+        public Hash128 ID => nodeID;
+        public int InputPortCount => inputPorts.Count;
+        public int OutputPortCount => outputPorts.Count;
+        
+        public OutputPort GetOutputPort(int index) => outputPorts[index];
+        public InputPort GetInputPort(int index) => inputPorts[index];
+
+        public virtual bool IsConstantNode() => inputPorts.All(port => port.PortSource == InputPortSource.Constant);
+        
+        protected virtual void UpdateNodeOutputs(IQueryContext context) {}
+        
+        public void UpdateNode(IQueryContext context)
         {
             var currentQueryID = context.QueryID;
             if (previousQueryID == currentQueryID) return;
             previousQueryID = currentQueryID;
             
-            PopulateOutputs(context);
+            UpdateNodeOutputs(context);
         }
-        
-        protected virtual void PopulateOutputs(IQueryContext context) {}
     }
 }

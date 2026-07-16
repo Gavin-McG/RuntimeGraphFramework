@@ -114,7 +114,7 @@ namespace RuntimeGraphFramework.Editor
             // Custom node
             if (node is IEditorNode<RuntimeNode>)
             {
-                OutputPortReference portReference = connectedPort.GetRuntimeOutputPortReference(context);
+                OutputPortReference portReference = connectedPort.GetOutputPortReference(context);
                 if (portReference != null) 
                     return CreatePortReferenceInputPort<TGraph>(port.ID, portReference);
                 else
@@ -140,7 +140,8 @@ namespace RuntimeGraphFramework.Editor
             throw new ArgumentException($"Could not resolve InputPort of port for node {node.GetType().Name}");
         }
         
-        public static ControlNode GetConnectedControlNode(this IPort port, DialogueImportContext context)
+        public static T GetConnectedRuntimeNode<T>(this IPort port, DialogueImportContext context)
+        where T : RuntimeNode
         {
             if (port == null) return null;
             if (!port.IsConnected) return null;
@@ -148,7 +149,7 @@ namespace RuntimeGraphFramework.Editor
             INode connectedNode = connectedPort.GetNode();
             
             // Direct Connection
-            if (connectedNode is IEditorNode<ControlNode> controlNode)
+            if (connectedNode is IEditorNode<T> controlNode)
             {
                 return controlNode.GetRuntimeNode(context);
             }
@@ -164,7 +165,7 @@ namespace RuntimeGraphFramework.Editor
                 
                 // Get the Connected Control Node within the Subgraph
                 context.currentSubgraph = subgraphNode;
-                var output = variablePort.GetConnectedControlNode(context);
+                var output = variablePort.GetConnectedRuntimeNode<T>(context);
                 context.currentSubgraph = null;
                 
                 return output;
@@ -181,7 +182,7 @@ namespace RuntimeGraphFramework.Editor
                 
                 // Get the Connected Control Node out of the Subgraph
                 context.currentSubgraph = null;
-                var output = subgraphOutputPort.GetConnectedControlNode(context);
+                var output = subgraphOutputPort.GetConnectedRuntimeNode<T>(context);
                 context.currentSubgraph = currentSubgraph;
                 
                 return output;
@@ -190,13 +191,13 @@ namespace RuntimeGraphFramework.Editor
             return null;
         }
         
-        public static OutputPortReference GetRuntimeOutputPortReference(this IPort port, DialogueImportContext context)
+        public static OutputPortReference GetOutputPortReference(this IPort port, DialogueImportContext context)
         {
             if (port == null) return null;
             
             // Check that the port is of the correct type
             if (port.Direction != PortDirection.Output)
-                throw new ArgumentException("GetRuntimeOutputPortReference: Port direction must be Output");
+                throw new ArgumentException("GetOutputPortReference: Port direction must be Output");
             
             // Get port reference from EditorNode
             var node = port.GetNode();
@@ -216,16 +217,16 @@ namespace RuntimeGraphFramework.Editor
             }
             
             // Could not get port reference
-            throw new ArgumentException("GetRuntimeOutputPortReference: Port must belong to an IEditorNode");
+            throw new ArgumentException("GetOutputPortReference: Port must belong to an IEditorNode");
         }
 
-        public static InputPortReference GetRuntimeInputPortReference(this IPort port, DialogueImportContext context)
+        public static InputPortReference GetInputPortReference(this IPort port, DialogueImportContext context)
         {
             if (port == null) return null;
             
             // Check that the port is of the correct type
             if (port.Direction != PortDirection.Input)
-                throw new ArgumentException("GetRuntimeInputPortReference: Port direction must be Input");
+                throw new ArgumentException("GetInputPortReference: Port direction must be Input");
             
             // Get port reference from EditorNode
             var node = port.GetNode();
@@ -245,7 +246,7 @@ namespace RuntimeGraphFramework.Editor
             }
             
             // Could not get port reference
-            throw new ArgumentException("GetRuntimeInputPortReference: Port must belong to an IEditorNode");
+            throw new ArgumentException("GetInputPortReference: Port must belong to an IEditorNode");
         }
     }
 }
