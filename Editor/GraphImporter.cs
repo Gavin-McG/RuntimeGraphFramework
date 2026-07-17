@@ -101,6 +101,7 @@ namespace RuntimeGraphFramework.Editor
             // Define graph
             var importContext = new GraphImportContext()
             {
+                assetContext = ctx,
                 graphType = typeof(TRuntimeGraph),
                 currentSubgraph = null,
                 validVariables = validVariables
