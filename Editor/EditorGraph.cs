@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using RuntimeGraphFramework.Editor;
 using Unity.GraphToolkit.Editor;
 
-namespace RuntimeGraphFramework
+namespace RuntimeGraphFramework.Editor
 {
     [Serializable]
     public abstract class EditorGraph<TGraph> : Graph where TGraph : RuntimeGraph

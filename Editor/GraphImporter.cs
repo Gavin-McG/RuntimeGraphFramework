@@ -18,6 +18,8 @@ namespace RuntimeGraphFramework.Editor
         [Tooltip("Allows the individual Nodes to be observable in the Project Menu.")]
         [SerializeField] bool DeveloperMode = false;
         
+        protected TEditorGraph editorGraph;
+        
         private void RemoveConstantNodes(HashSet<RuntimeNode> runtimeNodes, GraphImportContext context)
         {
             // Delete all Constants iteratively
@@ -63,23 +65,23 @@ namespace RuntimeGraphFramework.Editor
         
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            var graph = GraphDatabase.LoadGraphForImporter<TEditorGraph>(ctx.assetPath);
+            editorGraph = GraphDatabase.LoadGraphForImporter<TEditorGraph>(ctx.assetPath);
 
             // Create main Graph asset
             var runtimeGraph = ScriptableObject.CreateInstance<TRuntimeGraph>();
-            runtimeGraph.graphID = graph.ID;
+            runtimeGraph.graphID = editorGraph.ID;
             ctx.AddObjectToAsset(runtimeGraph.GetType().Name, runtimeGraph);
             ctx.SetMainObject(runtimeGraph);
             
             // Clear existing nodes' Data
-            var editorNodes = graph.GetNodes<IEditorNode<RuntimeNode>>().ToList();
+            var editorNodes = editorGraph.GetNodes<IEditorNode<RuntimeNode>>().ToList();
             foreach (var editorNode in editorNodes)
             {
                 editorNode.ClearData();
             }
             
             // Print out un-addable Variables
-            var variableGroups = graph.GetVariableGroups().ToList();
+            var variableGroups = editorGraph.GetVariableGroups().ToList();
             foreach (var variableGroup in variableGroups)
             {
                 if (variableGroup.Any(variable => 
@@ -92,7 +94,7 @@ namespace RuntimeGraphFramework.Editor
             }
             
             // Add all variables to Graph
-            var validVariables = graph.GetValidVariables(variableGroups);
+            var validVariables = editorGraph.GetValidVariables(variableGroups);
             runtimeGraph.variables = validVariables.ToDictionary(
                 variable => variable.Name,
                 variable => variable.GetRuntimeVariable()
@@ -127,6 +129,6 @@ namespace RuntimeGraphFramework.Editor
             }
         }
         
-        public abstract void DefineRuntimeGraph(TRuntimeGraph graph, GraphImportContext ctx);
+        public abstract void DefineRuntimeGraph(TRuntimeGraph runtimeGraph, GraphImportContext ctx);
     }
 }
