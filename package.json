@@ -1,5 +1,5 @@
 {
-  "name": "com.gavinmcginness.RuntimeGraphFramework",
+  "name": "com.gavinmcginness.runtimegraphframework",
   "version": "1.0.0",
   "displayName": "Runtime Graph Framework",
   "description": "This package acts as an extension to the Graph Toolkit for developing tools that require access to the Graph representation at runtime. At also adds builtin support for defining type casting and single-level Subgraphs",
