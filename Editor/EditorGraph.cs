@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using RuntimeGraphFramework.Editor;
 using Unity.GraphToolkit.Editor;
-using UnityEngine;
 
 namespace RuntimeGraphFramework
 {
@@ -41,6 +40,24 @@ namespace RuntimeGraphFramework
 
             // Allow by Default
             return true;
+        }
+        
+        public IEnumerable<IGrouping<string, IVariable>> GetVariableGroups()
+        {
+            return GetVariables(SortMethod.Creation).GroupBy(variable => variable.Name);
+        }
+
+        public HashSet<IVariable> GetValidVariables(IEnumerable<IGrouping<string, IVariable>> variableGroups)
+        {
+            return variableGroups
+                .Where(group => group.Count() == 1)
+                .Select(group => group.First())
+                .ToHashSet();
+        }
+
+        public HashSet<IVariable> GetValidVariables()
+        {
+            return GetValidVariables(GetVariableGroups());
         }
     }
 }

@@ -6,9 +6,8 @@ using UnityEngine;
 
 namespace RuntimeGraphFramework.Editor
 {
-    public class EditorNodeModel<TRuntimeNode, TGraph> : IEditorNode<TRuntimeNode>
+    public class EditorNodeModel<TRuntimeNode> : IEditorNode<TRuntimeNode>
         where TRuntimeNode : RuntimeNode
-        where TGraph : RuntimeGraph
     {
         private readonly IEditorNodeOwner<TRuntimeNode> _owner;
 
@@ -56,14 +55,14 @@ namespace RuntimeGraphFramework.Editor
             }
         }
 
-        private TRuntimeNode GetRegisteredNode(DialogueImportContext context)
+        private TRuntimeNode GetRegisteredNode(GraphImportContext context)
         {
             Hash128 nodeKey = default;
             if (context.currentSubgraph != null) nodeKey = context.currentSubgraph.ID;
             return _nodes.GetValueOrDefault(nodeKey);
         }
 
-        private void RegisterNode(DialogueImportContext context, TRuntimeNode node)
+        private void RegisterNode(GraphImportContext context, TRuntimeNode node)
         {
             if (node == null) throw new ArgumentNullException(nameof(node));
             Hash128 nodeKey = default;
@@ -71,7 +70,7 @@ namespace RuntimeGraphFramework.Editor
             _nodes[nodeKey] = node;
         }
 
-        public TRuntimeNode GetRuntimeNode(DialogueImportContext context)
+        public TRuntimeNode GetRuntimeNode(GraphImportContext context)
         {
             // Check if already Initialized
             var currentNode = GetRegisteredNode(context);
@@ -90,7 +89,7 @@ namespace RuntimeGraphFramework.Editor
             TryRegisterPorts();
             foreach (var port in _inputPorts)
             {
-                var InputPort = port.CreateRuntimeInputPort<TGraph>(context);
+                var InputPort = port.CreateRuntimeInputPort(context);
                 newNode.inputPorts.Add(InputPort);
             }
             foreach (var port in _outputPorts)

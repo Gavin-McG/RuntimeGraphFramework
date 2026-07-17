@@ -7,27 +7,41 @@ namespace RuntimeGraphFramework.Editor
 {
     public static class PortExtensions
     {
-        public static InputPort CreateConstantInputPort<TGraph>(Hash128 portId, object value)
+        public static InputPort CreateConstantInputPort(GraphImportContext context, IPort port)
         {
-            var portType = value.GetType();
-            var inputPortType = typeof(InputPort<,>).MakeGenericType(portType, typeof(TGraph));
-            var constructorArguments = new object[] { value, portId };
+            port.TryGetValue(out object value);
+            var inputPortType = typeof(InputPort<,>).MakeGenericType(port.DataType, context.graphType);
+            var constructorArguments = new object[] { value, port.ID };
             return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
         }
         
-        private static InputPort CreateVariableInputPort<TGraph>(Hash128 portId, IVariable variable)
+        public static InputPort CreateConstantInputPort(GraphImportContext context, IPort port, object value)
+        {
+            var inputPortType = typeof(InputPort<,>).MakeGenericType(value.GetType(), context.graphType);
+            var constructorArguments = new object[] { value, port.ID };
+            return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
+        }
+        
+        public static InputPort CreateConstantInputPort(GraphImportContext context, InputPort inputPort, object value)
+        {
+            var inputPortType = typeof(InputPort<,>).MakeGenericType(value.GetType(), context.graphType);
+            var constructorArguments = new object[] { value, inputPort.PortID };
+            return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
+        }
+        
+        private static InputPort CreateVariableInputPort(GraphImportContext context, IPort port, IVariable variable)
         {
             var portType = variable.DataType;
-            var inputPortType = typeof(InputPort<,>).MakeGenericType(portType, typeof(TGraph));
-            var constructorArguments = new object[] { portId, variable.Name };
+            var inputPortType = typeof(InputPort<,>).MakeGenericType(portType, context.graphType);
+            var constructorArguments = new object[] { port.ID, variable.Name };
             return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
         }
 
-        private static InputPort CreatePortReferenceInputPort<TGraph>(Hash128 portId, OutputPortReference portReference)
+        private static InputPort CreatePortReferenceInputPort(GraphImportContext context, IPort port, OutputPortReference portReference)
         {
             var portType = portReference.DataType;
-            var inputPortType = typeof(InputPort<,>).MakeGenericType(portType, typeof(TGraph));
-            var constructorArguments = new object[] { portId, portReference };
+            var inputPortType = typeof(InputPort<,>).MakeGenericType(portType, context.graphType);
+            var constructorArguments = new object[] { port.ID, portReference };
             return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
         }
 
@@ -38,17 +52,12 @@ namespace RuntimeGraphFramework.Editor
                 throw new ArgumentException("Port must be an Output port");
 
             Type portType = port.DataType;
-
-            if (portType == typeof(int)) return new OutputPort<int>(node);
-            if (portType == typeof(float)) return new OutputPort<float>(node);
-            if (portType == typeof(string)) return new OutputPort<string>(node);
-            if (portType == typeof(bool)) return new OutputPort<bool>(node);
-            if (portType == typeof(GameObject)) return new OutputPort<GameObject>(node);
-            if (portType == typeof(Color)) return new OutputPort<Color>(node);
-            throw new ArgumentException($"Unsupported OutputPort type '{port.DataType}'");
+            var outputPortType = typeof(OutputPort<>).MakeGenericType(portType);
+            var constructorArguments = new object[] { node };
+            return Activator.CreateInstance(outputPortType, constructorArguments) as OutputPort;
         }
 
-        public static InputPort CreateRuntimeInputPort<TGraph>(this IPort port, DialogueImportContext context)
+        public static InputPort CreateRuntimeInputPort(this IPort port, GraphImportContext context)
         {
             if (port == null) return null;
             if (port.Direction == PortDirection.Output)
@@ -57,8 +66,7 @@ namespace RuntimeGraphFramework.Editor
             // Use value assigned on input port
             if (!port.IsConnected)
             {
-                port.TryGetValue(out object value);
-                return CreateConstantInputPort<TGraph>(port.ID, value);
+                return CreateConstantInputPort(context, port);
             }
 
             // Get the node connected to the port
@@ -75,7 +83,7 @@ namespace RuntimeGraphFramework.Editor
             if (node is IConstantNode constantNode)
             {
                 constantNode.TryGetValue(out object value);
-                return CreateConstantInputPort<TGraph>(port.ID, value);
+                return CreateConstantInputPort(context, port, value);
             }
 
             // Variable
@@ -88,12 +96,12 @@ namespace RuntimeGraphFramework.Editor
                     if (context.validVariables.Contains(variable))
                     {
                         // Create Variable port if Variable is valid
-                        return CreateVariableInputPort<TGraph>(port.ID, variable);
+                        return CreateVariableInputPort(context, port, variable);
                     }
                     
                     // Convert Variable to constant if Variable isn't valid
                     variable.TryGetDefaultValue(out object defaultValue);
-                    return CreateConstantInputPort<TGraph>(port.ID, defaultValue);
+                    return CreateConstantInputPort(context, port, defaultValue);
                 }
                 else if (variable.VariableKind == VariableKind.Input)
                 {
@@ -104,7 +112,7 @@ namespace RuntimeGraphFramework.Editor
                     
                     // Get the DataNode InputPort of the Connected Port
                     context.currentSubgraph = null;
-                    var output = subgraphInputPort.CreateRuntimeInputPort<TGraph>(context);
+                    var output = subgraphInputPort.CreateRuntimeInputPort(context);
                     context.currentSubgraph = currentSubgraph;
                     
                     return output;
@@ -116,9 +124,9 @@ namespace RuntimeGraphFramework.Editor
             {
                 OutputPortReference portReference = connectedPort.GetOutputPortReference(context);
                 if (portReference != null) 
-                    return CreatePortReferenceInputPort<TGraph>(port.ID, portReference);
+                    return CreatePortReferenceInputPort(context, port, portReference);
                 else
-                    return CreateConstantInputPort<TGraph>(port.ID, string.Empty);
+                    return CreateConstantInputPort(context, port, string.Empty);
             }
             
             // Subgraph
@@ -131,7 +139,7 @@ namespace RuntimeGraphFramework.Editor
                 
                 // Get the Connected Control Node within the Subgraph
                 context.currentSubgraph = subgraphNode;
-                var output = variablePort.CreateRuntimeInputPort<TGraph>(context);
+                var output = variablePort.CreateRuntimeInputPort(context);
                 context.currentSubgraph = null;
                 
                 return output;
@@ -140,7 +148,7 @@ namespace RuntimeGraphFramework.Editor
             throw new ArgumentException($"Could not resolve InputPort of port for node {node.GetType().Name}");
         }
         
-        public static T GetConnectedRuntimeNode<T>(this IPort port, DialogueImportContext context)
+        public static T GetConnectedRuntimeNode<T>(this IPort port, GraphImportContext context)
         where T : RuntimeNode
         {
             if (port == null) return null;
@@ -191,7 +199,7 @@ namespace RuntimeGraphFramework.Editor
             return null;
         }
         
-        public static OutputPortReference GetOutputPortReference(this IPort port, DialogueImportContext context)
+        public static OutputPortReference GetOutputPortReference(this IPort port, GraphImportContext context)
         {
             if (port == null) return null;
             
@@ -220,7 +228,7 @@ namespace RuntimeGraphFramework.Editor
             throw new ArgumentException("GetOutputPortReference: Port must belong to an IEditorNode");
         }
 
-        public static InputPortReference GetInputPortReference(this IPort port, DialogueImportContext context)
+        public static InputPortReference GetInputPortReference(this IPort port, GraphImportContext context)
         {
             if (port == null) return null;
             

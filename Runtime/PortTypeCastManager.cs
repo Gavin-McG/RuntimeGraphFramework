@@ -103,7 +103,7 @@ namespace RuntimeGraphFramework
 
         public static bool CanTypesCast<TGraph>(Type outputType, Type inputType)
         {
-            if (outputType == inputType) return true;
+            if (inputType.IsAssignableFrom(outputType)) return true;
             
             var key = new LookupKey(
                 outputType, 
@@ -115,7 +115,7 @@ namespace RuntimeGraphFramework
        
         public static TInput GetCastedValue<TOutput, TInput, TGraph>(TOutput output)
         {
-            if (typeof(TInput) == typeof(TOutput))
+            if (typeof(TInput).IsAssignableFrom(typeof(TOutput)))
                 return (TInput)(object)output;
 
             var key = new LookupKey(
