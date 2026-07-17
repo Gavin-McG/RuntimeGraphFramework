@@ -1,0 +1,20 @@
+{
+  "name": "com.gavinmcginness.RuntimeGraphFramework",
+  "version": "1.0.0",
+  "displayName": "Runtime Graph Framework",
+  "description": "This package acts as an extension to the Graph Toolkit for developing tools that require access to the Graph representation at runtime. At also adds builtin support for defining type casting and single-level Subgraphs",
+  "unity": "6000.6",
+  "unityRelease": "0b1",
+  "keywords": [
+    "Graph",
+    "Graph Toolkit",
+    "GTK",
+    "Editor",
+    "Editor Tool"
+  ],
+  "author": {
+    "name": "Gavin McGinness",
+    "email": "gavinm5521@gmail.com",
+    "url": "http://www.gavinmcginness.com/"
+  }
+}
