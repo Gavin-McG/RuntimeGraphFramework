@@ -6,26 +6,18 @@ namespace RuntimeGraphFramework.Editor
 {
     public static class PortExtensions
     {
-        public static RuntimeNode GetRuntimeNode(this IPort port, GraphImportContext context)
-        {
-            var node = port.GetNode();
-            if (node is not IEditorNode<RuntimeNode> editorNode) 
-                throw new ArgumentException("Port must be on an EditorNode");
-            return editorNode.GetRuntimeNode(context);
-        } 
-        
-        public static InputPort CreateConstantInputPort(this IPort port, GraphImportContext context)
+        public static InputPort CreateConstantInputPort(this IPort port, GraphImportContext context, RuntimeNode node)
         {
             port.TryGetValue(out object value);
             var inputPortType = typeof(ConstantInputPort<,>).MakeGenericType(port.DataType, context.GraphType);
-            var constructorArguments = new object[] { port.Name, port.ID, port.GetRuntimeNode(context), value };
+            var constructorArguments = new object[] { port.Name, port.ID, node, value };
             return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
         }
         
-        public static InputPort CreateConstantInputPort(this IPort port, GraphImportContext context, object value)
+        public static InputPort CreateConstantInputPort(this IPort port, GraphImportContext context, RuntimeNode node, object value)
         {
             var inputPortType = typeof(ConstantInputPort<,>).MakeGenericType(value.GetType(), context.GraphType);
-            var constructorArguments = new object[] { port.Name, port.ID, port.GetRuntimeNode(context), value};
+            var constructorArguments = new object[] { port.Name, port.ID, node, value};
             return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
         }
         
@@ -36,19 +28,19 @@ namespace RuntimeGraphFramework.Editor
             return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
         }
         
-        private static InputPort CreateVariableInputPort(this IPort port, GraphImportContext context, IVariable variable)
+        private static InputPort CreateVariableInputPort(this IPort port, GraphImportContext context, RuntimeNode node, IVariable variable)
         {
             var portType = variable.DataType;
             var inputPortType = typeof(VariableInputPort<,>).MakeGenericType(portType, context.GraphType);
-            var constructorArguments = new object[] { port.Name, port.ID, port.GetRuntimeNode(context), variable.Name };
+            var constructorArguments = new object[] { port.Name, port.ID, node, variable.Name };
             return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
         }
 
-        private static InputPort CreateConnectedInputPort(this IPort port, GraphImportContext context, OutputPortReference portReference)
+        private static InputPort CreateConnectedInputPort(this IPort port, GraphImportContext context, RuntimeNode node, OutputPortReference portReference)
         {
             var portType = portReference.DataType;
             var inputPortType = typeof(ConnectedInputPort<,>).MakeGenericType(portType, context.GraphType);
-            var constructorArguments = new object[] { port.Name, port.ID, port.GetRuntimeNode(context), portReference };
+            var constructorArguments = new object[] { port.Name, port.ID, node, portReference };
             return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
         }
 
@@ -66,6 +58,18 @@ namespace RuntimeGraphFramework.Editor
 
         public static InputPort CreateRuntimeInputPort(this IPort port, GraphImportContext context)
         {
+            // Get port's node as EditorNode
+            var node = port.GetNode();
+            if (node is not IEditorNode<RuntimeNode> editorNode) 
+                throw new ArgumentException("Port must be on an EditorNode");
+            
+            // Create Input Port
+            var runtimeNode = editorNode.GetRuntimeNode(context);
+            return port.CreateRuntimeInputPort(context, runtimeNode);
+        }
+
+        private static InputPort CreateRuntimeInputPort(this IPort port, GraphImportContext context, RuntimeNode runtimeNode)
+        {
             if (port == null) return null;
             if (port.Direction != PortDirection.Input) 
                 throw new ArgumentException("Port must be an Input port");
@@ -73,7 +77,7 @@ namespace RuntimeGraphFramework.Editor
             // Use value assigned on input port
             if (!port.IsConnected)
             {
-                return port.CreateConstantInputPort(context);
+                return port.CreateConstantInputPort(context, runtimeNode);
             }
 
             // Get the node connected to the port
@@ -90,7 +94,7 @@ namespace RuntimeGraphFramework.Editor
             if (connectedNode is IConstantNode constantNode)
             {
                 constantNode.TryGetValue(out object value);
-                return port.CreateConstantInputPort(context, value);
+                return port.CreateConstantInputPort(context, runtimeNode, value);
             }
 
             // Variable
@@ -103,12 +107,12 @@ namespace RuntimeGraphFramework.Editor
                     if (context.validVariables.Contains(variable))
                     {
                         // Create Variable port if Variable is valid
-                        return port.CreateVariableInputPort(context, variable);
+                        return port.CreateVariableInputPort(context, runtimeNode, variable);
                     }
                     
                     // Convert Variable to constant if Variable isn't valid
                     variable.TryGetDefaultValue(out object defaultValue);
-                    return port.CreateConstantInputPort(context, defaultValue);
+                    return port.CreateConstantInputPort(context, runtimeNode, defaultValue);
                 }
                 else if (variable.VariableKind == VariableKind.Input)
                 {
@@ -119,7 +123,7 @@ namespace RuntimeGraphFramework.Editor
                     
                     // Get the DataNode InputPort of the Connected Port
                     context.currentSubgraph = null;
-                    var output = subgraphInputPort.CreateRuntimeInputPort(context);
+                    var output = subgraphInputPort.CreateRuntimeInputPort(context, runtimeNode);
                     context.currentSubgraph = currentSubgraph;
                     
                     return output;
@@ -131,9 +135,9 @@ namespace RuntimeGraphFramework.Editor
             {
                 OutputPortReference portReference = connectedPort.GetOutputPortReference(context);
                 if (portReference != null) 
-                    return port.CreateConnectedInputPort(context, portReference);
+                    return port.CreateConnectedInputPort(context, runtimeNode, portReference);
                 else
-                    return port.CreateConstantInputPort(context, 0f);
+                    return port.CreateConstantInputPort(context, runtimeNode, 0f);
             }
             
             // Subgraph
@@ -146,7 +150,7 @@ namespace RuntimeGraphFramework.Editor
                 
                 // Get the Connected Control Node within the Subgraph
                 context.currentSubgraph = subgraphNode;
-                var output = variablePort.CreateRuntimeInputPort(context);
+                var output = variablePort.CreateRuntimeInputPort(context, runtimeNode);
                 context.currentSubgraph = null;
                 
                 return output;
