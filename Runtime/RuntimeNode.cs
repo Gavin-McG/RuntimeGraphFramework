@@ -23,7 +23,7 @@ namespace RuntimeGraphFramework
         public OutputPort GetOutputPort(int index) => outputPorts[index];
         public InputPort GetInputPort(int index) => inputPorts[index];
 
-        public virtual bool IsConstantNode() => inputPorts.All(port => port.PortSource == InputPortSource.Constant) && !hasUntypedPorts;
+        public virtual bool IsConstantNode() => inputPorts.All(port => port.PortKind == InputPortKind.Constant) && !hasUntypedPorts;
         
         protected virtual void UpdateNodeOutputs(IQueryContext context) {}
         

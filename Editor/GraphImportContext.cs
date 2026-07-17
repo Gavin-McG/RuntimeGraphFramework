@@ -8,8 +8,10 @@ namespace RuntimeGraphFramework.Editor
     public class GraphImportContext
     {
         public AssetImportContext assetContext;
-        public Type graphType;
+        public RuntimeGraph runtimeGraph;
         public ISubgraphNode currentSubgraph = null;
         public HashSet<IVariable> validVariables;
+        
+        public Type GraphType => runtimeGraph.GetType();
     }
 }

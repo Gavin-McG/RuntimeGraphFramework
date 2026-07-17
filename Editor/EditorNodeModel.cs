@@ -79,6 +79,7 @@ namespace RuntimeGraphFramework.Editor
             // Create instance
             var newNode = ScriptableObject.CreateInstance<TRuntimeNode>();
             newNode.name = typeof(TRuntimeNode).Name;
+            newNode.graph = context.runtimeGraph;
             RegisterNode(context, newNode);
             
             // Set ID

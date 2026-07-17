@@ -3,79 +3,85 @@ using UnityEngine;
 
 namespace RuntimeGraphFramework
 {
-    public enum InputPortSource
+    public enum InputPortKind
     {
         Constant,
         Variable,
-        PortReference,
-    }
-
-    [Serializable]
-    public abstract class InputPort
-    {
-        [SerializeField] protected Hash128 portID;
-        [SerializeField] protected InputPortSource portSource;
-        
-        public Hash128 PortID => portID;
-        public InputPortSource PortSource => portSource;
-        public abstract OutputPortReference PortReference { get; }
-        public abstract Type DataType { get; }
-        
-        public abstract TInput GetValue<TInput>(IQueryContext context);
+        Connected,
     }
     
     [Serializable]
-    public class InputPort<TOutput, TGraph> : InputPort
+    public abstract class InputPort : RuntimePort
     {
-        [SerializeField] private TOutput constantValue;
-        [SerializeField] protected string variableName;
-        [SerializeField] private OutputPortReference portReference;
+        public abstract OutputPortReference PortReference { get; }
+        public abstract InputPortKind PortKind { get; }
         
-        public override OutputPortReference PortReference => portReference;
+        protected InputPort(string name, Hash128 id, RuntimeNode node) : base(name, id, node) {}
+        
+        public abstract TInput GetValue<TInput>(IQueryContext context);
+    }
+
+    [Serializable]
+    public class ConstantInputPort<TOutput, TGraph> : InputPort
+    {
+        [SerializeField] private TOutput _value;
+        
         public override Type DataType => typeof(TOutput);
+        public override OutputPortReference PortReference => null;
+        public override InputPortKind PortKind => InputPortKind.Constant;
         
-        public InputPort(TOutput constantValue, Hash128 portID)
+        public ConstantInputPort(string name, Hash128 id, RuntimeNode node, TOutput value) : base(name, id, node)
         {
-            this.portID = portID;
-            portSource = InputPortSource.Constant;
-            this.constantValue = constantValue;
+            _value = value;
         }
 
-        public InputPort(Hash128 portID, string variableName)
-        {
-            this.portID = portID;
-            portSource = InputPortSource.Variable;
-            this.variableName = variableName;
-        }
-
-        public InputPort(Hash128 portID, OutputPortReference portReference)
-        {
-            this.portID = portID;
-            portSource = InputPortSource.PortReference;
-            this.portReference = portReference;
-        }
-
-        private TOutput GetVariable(IVariableContext variables)
-        {
-            if (variables.TryGetVariable<TOutput>(variableName, out var value)) return value;
-            return constantValue;
-        }
-        
-        private OutputPort GetConnectedPort()
-        {
-            return portReference.GetOutputPort();
-        }
-        
         public override TInput GetValue<TInput>(IQueryContext context)
         {
-            var value = portSource switch
-            {
-                InputPortSource.Constant => constantValue,
-                InputPortSource.Variable => GetVariable(context),
-                InputPortSource.PortReference => GetConnectedPort().GetValue<TOutput>(context),
-                _ => default,
-            };
+            return PortTypeCastManager.GetCastedValue<TOutput, TInput, TGraph>(_value);
+        }
+    }
 
+    [Serializable]
+    public class VariableInputPort<TOutput, TGraph> : InputPort
+    {
+        [SerializeField] private string _variableName;
+        
+        public override Type DataType => typeof(TOutput);
+        public override OutputPortReference PortReference => null;
+        public override InputPortKind PortKind => InputPortKind.Variable;
+
+        public VariableInputPort(string name, Hash128 id, RuntimeNode node, string variableName) : base(name, id, node)
+        {
+            _variableName = variableName;
+        }
+
+        public override TInput GetValue<TInput>(IQueryContext context)
+        {
+            if (context.TryGetVariable<TOutput>(_variableName, out var value))
+            {
+                return PortTypeCastManager.GetCastedValue<TOutput, TInput, TGraph>(value);
+            }
+            return default;
+        }
+    }
+
+    [Serializable]
+    public class ConnectedInputPort<TOutput, TGraph> : InputPort
+    {
+        [SerializeField] private OutputPortReference _connectedPort;
+        
+        public override Type DataType => typeof(TOutput);
+        public override OutputPortReference PortReference => _connectedPort;
+        public override InputPortKind PortKind => InputPortKind.Connected;
+
+        public ConnectedInputPort(string name, Hash128 id, RuntimeNode node, OutputPortReference connectedPort) : base(name, id, node)
+        {
+            _connectedPort = connectedPort;
+        }
+
+        public override TInput GetValue<TInput>(IQueryContext context)
+        {
+            var value = PortReference.GetOutputPort().GetValue<TOutput>(context);
             return PortTypeCastManager.GetCastedValue<TOutput, TInput, TGraph>(value);
         }
     }

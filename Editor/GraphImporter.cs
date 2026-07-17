@@ -48,14 +48,13 @@ namespace RuntimeGraphFramework.Editor
                     for (int i = 0; i < runtimeNode.inputPorts.Count; ++i)
                     {
                         InputPort inputPort = runtimeNode.inputPorts[i];
-                        if (inputPort.PortSource != InputPortSource.PortReference) continue;
+                        if (inputPort.PortKind != InputPortKind.Connected) continue;
                         
                         var outputPort = inputPort.PortReference;
                         if (!constantNodes.Contains(outputPort.Node)) continue;
 
-                        runtimeNode.inputPorts[i] = PortExtensions.CreateConstantInputPort(
+                        runtimeNode.inputPorts[i] = inputPort.CreateConstantInputPort(
                             context,
-                            inputPort,
                             outputPort.GetValue<object>(constantContext)
                         );
                     }
@@ -104,7 +103,7 @@ namespace RuntimeGraphFramework.Editor
             var importContext = new GraphImportContext()
             {
                 assetContext = ctx,
-                graphType = typeof(TRuntimeGraph),
+                runtimeGraph = runtimeGraph,
                 currentSubgraph = null,
                 validVariables = validVariables
             };
