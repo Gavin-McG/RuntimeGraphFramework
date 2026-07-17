@@ -23,6 +23,7 @@ namespace RuntimeGraphFramework.Editor
         public static RuntimeVariable GetRuntimeVariable(this IVariable variable)
         {
             Type type = variable.DataType;
+            if (type == typeof(Untyped)) return null;
             
             // Get default value of variable
             MethodInfo tryGetMethod = TryGetDefaultValueMethod.MakeGenericMethod(type);

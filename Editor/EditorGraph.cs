@@ -50,7 +50,7 @@ namespace RuntimeGraphFramework
         public HashSet<IVariable> GetValidVariables(IEnumerable<IGrouping<string, IVariable>> variableGroups)
         {
             return variableGroups
-                .Where(group => group.Count() == 1)
+                .Where(group => group.Count() == 1 && group.First().DataType != typeof(Untyped))
                 .Select(group => group.First())
                 .ToHashSet();
         }
