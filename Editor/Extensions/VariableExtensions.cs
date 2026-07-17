@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Unity.GraphToolkit.Editor;
-using UnityEngine;
 
 namespace RuntimeGraphFramework.Editor
 {
@@ -14,45 +14,27 @@ namespace RuntimeGraphFramework.Editor
             return variableNodes;
         }
 
+        private static readonly MethodInfo TryGetDefaultValueMethod =
+            typeof(IVariable).GetMethod(nameof(IVariable.TryGetDefaultValue));
+
+        private static readonly MethodInfo CreateVariableMethod =
+            typeof(RuntimeVariable).GetMethod(nameof(RuntimeVariable.CreateVariable));
+        
         public static RuntimeVariable GetRuntimeVariable(this IVariable variable)
         {
-            Type variableType = variable.DataType;
-            if (variableType == typeof(int))
-            {
-                // Integer variable
-                variable.TryGetDefaultValue(out int value);
-                return RuntimeVariable.CreateVariable(value);
-            }
-            if (variableType == typeof(float))
-            {
-                // Float variable
-                variable.TryGetDefaultValue(out float value);
-                return RuntimeVariable.CreateVariable(value);
-            }
-            if (variableType == typeof(string))
-            {
-                // String variable
-                variable.TryGetDefaultValue(out string value);
-                return RuntimeVariable.CreateVariable(value);
-            }
-            if (variableType == typeof(bool))
-            {
-                // GameObject Variable
-                variable.TryGetDefaultValue(out bool value);
-                return RuntimeVariable.CreateVariable(value);
-            }
-            if (variableType == typeof(GameObject))
-            {
-                // GameObject Variable
-                variable.TryGetDefaultValue(out GameObject value);
-                return RuntimeVariable.CreateVariable(value);
-            }
-            if (variableType == typeof(Color))
-            {
-                variable.TryGetDefaultValue(out Color value);
-                return RuntimeVariable.CreateVariable(value);
-            }
-            throw new ArgumentException("Unsupported variable type: " + variableType);
+            Type type = variable.DataType;
+            
+            // Get default value of variable
+            MethodInfo tryGetMethod = TryGetDefaultValueMethod.MakeGenericMethod(type);
+            object[] args = { null };
+            bool success = (bool)tryGetMethod.Invoke(variable, args);
+
+            if (!success) throw new InvalidOperationException($"Could not get default value for {type}.");
+
+            // Create variable from value
+            object value = args[0];
+            MethodInfo createMethod = CreateVariableMethod.MakeGenericMethod(type);
+            return (RuntimeVariable)createMethod.Invoke(null, new[] { value });
         }
     }
 }
