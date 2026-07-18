@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Reflection;
-using UnityEditor;
 using UnityEngine;
 
 namespace RuntimeGraphFramework
@@ -36,68 +34,53 @@ namespace RuntimeGraphFramework
         }
         
         private static readonly Dictionary<LookupKey, Func<object, object>> _casts = new();
-
-        private static void Validate(MethodInfo method, PortTypeCastAttribute attr)
+        
+        private static bool Validate(MethodInfo method, Type outputType, Type inputType)
         {
+            // Ensure that method is static
             if (!method.IsStatic)
-                throw new ArgumentException($"{method.Name} is not static");
+            {
+                Debug.LogError($"Cannot register Port Type cast: {method.Name} is not static");
+                return false;
+            }
 
+            // Check for parameter count
             var parameters = method.GetParameters();
             if (parameters.Length != 1)
-                throw new ArgumentException($"{method.Name} must have exactly 1 parameter");
-
-            if (parameters[0].ParameterType != attr.outputType)
-                throw new ArgumentException($"{method.Name} parameters must be of type {attr.outputType}");
-
-            if (method.ReturnType != attr.inputType)
-                throw new ArgumentException($"{method.Name} return must be of type {attr.inputType}");
-        }
-        
-        private static Func<object, object> Compile(MethodInfo method)
-        {
-            var input = Expression.Parameter(typeof(object));
-
-            var call = Expression.Call(
-                method,
-                Expression.Convert(input, method.GetParameters()[0].ParameterType));
-
-            var body = Expression.Convert(call, typeof(object));
-
-            return Expression
-                .Lambda<Func<object, object>>(body, input)
-                .Compile();
-        }
-        
-        [InitializeOnLoadMethod]
-        [RuntimeInitializeOnLoadMethod]
-        private static void Initialize()
-        {
-            _casts.Clear();
-
-            foreach (MethodInfo method in TypeCache.GetMethodsWithAttribute<PortTypeCastAttribute>())
             {
-                foreach (PortTypeCastAttribute attr in method.GetCustomAttributes<PortTypeCastAttribute>())
-                {
-                    Validate(method, attr);
-                    
-                    foreach (Type graphType in attr.graphTypes)
-                    {
-                        var newCastKey = new LookupKey
-                        (
-                            attr.outputType,
-                            attr.inputType,
-                            graphType
-                        );
+                Debug.LogError($"Cannot register Port Type cast: {method.Name} must have exactly 1 parameter");
+                return false;
+            }
 
-                        if (_casts.ContainsKey(newCastKey))
-                        {
-                            Debug.LogError($"Duplicate cast key {newCastKey.InputType} {newCastKey.OutputType} {newCastKey.GraphType}");
-                            continue;
-                        }
+            // Check parameter/return types
+            if (parameters[0].ParameterType != outputType)
+            {
+                Debug.LogError($"Cannot register Port Type cast: {method.Name} parameters must be of type {outputType}");
+                return false;
+            }
 
-                        _casts.Add(newCastKey, Compile(method));
-                    }
-                }
+            if (method.ReturnType != inputType)
+            {
+                Debug.LogError($"Cannot register Port Type cast: {method.Name} return must be of type {inputType}");
+                return false;
+            }
+            
+            return true;
+        }
+
+        public static void Register<TGraph>(Type outputType, Type inputType, Func<object, object> cast)
+        {
+            // Validate method
+            if (!Validate(cast.GetMethodInfo(), outputType, inputType)) return;
+            
+            var key = new LookupKey(
+                outputType, 
+                inputType, 
+                typeof(TGraph));
+
+            if (!_casts.TryAdd(key, cast))
+            {
+                Debug.LogError($"Duplicate Type cast registered for {typeof(TGraph).Name}: {outputType.Name} to {inputType.Name}");
             }
         }
 

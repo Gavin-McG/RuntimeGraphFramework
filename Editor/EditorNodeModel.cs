@@ -41,8 +41,8 @@ namespace RuntimeGraphFramework.Editor
             _portsRegistered = true;
             
             // Collect all Typed ports
-            _outputPorts = _owner.GetOutputPorts().Where(port => port.DataType != typeof(Untyped)).ToList();
-            _inputPorts = _owner.GetInputPorts().Where(port => port.DataType != typeof(Untyped)).ToList();
+            _outputPorts = _owner.GetOutputPorts().ToList();
+            _inputPorts = _owner.GetInputPorts().ToList();
             
             // Create index dictionary
             foreach (var port in _outputPorts)
