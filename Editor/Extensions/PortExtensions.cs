@@ -6,12 +6,9 @@ namespace RuntimeGraphFramework.Editor
 {
     public static class PortExtensions
     {
-        public static InputPort CreateConstantInputPort(this IPort port, GraphImportContext context, RuntimeNode node)
+        public static InputPort CreateUntypedInputPort(this IPort port, GraphImportContext context, RuntimeNode node)
         {
-            port.TryGetValue(out object value);
-            var inputPortType = typeof(ConstantInputPort<,>).MakeGenericType(port.DataType, context.GraphType);
-            var constructorArguments = new object[] { port.Name, port.ID, node, value };
-            return Activator.CreateInstance(inputPortType, constructorArguments) as InputPort;
+            return new UntypedInputPort(port.Name, port.ID, node);
         }
         
         public static InputPort CreateConstantInputPort(this IPort port, GraphImportContext context, RuntimeNode node, object value)
@@ -49,9 +46,15 @@ namespace RuntimeGraphFramework.Editor
             if (port == null) return null;
             if (port.Direction == PortDirection.Input)
                 throw new ArgumentException("Port must be an Output port");
-
+            
+            // Check for Untyped Port
             Type portType = port.DataType;
-            var outputPortType = typeof(OutputPort<>).MakeGenericType(portType);
+            if (portType == typeof(Untyped))
+            {
+                return new UntypedOutputPort(port.Name, port.ID, node);
+            }
+
+            var outputPortType = typeof(TypedOutputPort<>).MakeGenericType(portType);
             var constructorArguments = new object[] { port.Name, port.ID, node };
             return Activator.CreateInstance(outputPortType, constructorArguments) as OutputPort;
         }
@@ -74,10 +77,17 @@ namespace RuntimeGraphFramework.Editor
             if (port.Direction != PortDirection.Input) 
                 throw new ArgumentException("Port must be an Input port");
             
+            // Check for Untyped port
+            if (port.DataType == typeof(Untyped))
+            {
+                return CreateUntypedInputPort(port, context, runtimeNode);
+            }
+            
             // Use value assigned on input port
             if (!port.IsConnected)
             {
-                return port.CreateConstantInputPort(context, runtimeNode);
+                port.TryGetValue(out object value);
+                return port.CreateConstantInputPort(context, runtimeNode, value);
             }
 
             // Get the node connected to the port

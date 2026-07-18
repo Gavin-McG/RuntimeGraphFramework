@@ -8,6 +8,7 @@ namespace RuntimeGraphFramework
         Constant,
         Variable,
         Connected,
+        Untyped
     }
     
     [Serializable]
@@ -83,6 +84,21 @@ namespace RuntimeGraphFramework
         {
             var value = PortReference.GetOutputPort().GetValue<TOutput>(context);
             return PortTypeCastManager.GetCastedValue<TOutput, TInput, TGraph>(value);
+        }
+    }
+
+    [Serializable]
+    public class UntypedInputPort : InputPort
+    {
+        public override Type DataType => null;
+        public override OutputPortReference PortReference => null;
+        public override InputPortKind PortKind => InputPortKind.Untyped;
+        
+        public UntypedInputPort(string name, Hash128 id, RuntimeNode node) : base(name, id, node) {}
+
+        public override TInput GetValue<TInput>(IQueryContext context)
+        {
+            throw new InvalidCastException($"Value should not be retrieved from an UnTyped Input Port");
         }
     }
 }
