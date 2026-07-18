@@ -68,19 +68,24 @@ namespace RuntimeGraphFramework
             return true;
         }
 
-        public static void Register<TGraph>(Type outputType, Type inputType, Func<object, object> cast)
+        public static void Register<TOutput, TInput, TGraph>(Func<TOutput, TInput> cast)
         {
-            // Validate method
-            if (!Validate(cast.GetMethodInfo(), outputType, inputType)) return;
-            
+            MethodInfo method = cast.Method;
+            if (!Validate(method, typeof(TOutput), typeof(TInput)))
+                return;
+
             var key = new LookupKey(
-                outputType, 
-                inputType, 
+                typeof(TOutput),
+                typeof(TInput),
                 typeof(TGraph));
 
-            if (!_casts.TryAdd(key, cast))
+            Func<object, object> wrapper = obj => cast((TOutput)obj);
+
+            if (!_casts.TryAdd(key, wrapper))
             {
-                Debug.LogError($"Duplicate Type cast registered for {typeof(TGraph).Name}: {outputType.Name} to {inputType.Name}");
+                Debug.LogError(
+                    $"Duplicate type cast registered for {typeof(TGraph).Name}: " +
+                    $"{typeof(TOutput).Name} -> {typeof(TInput).Name}");
             }
         }
 
