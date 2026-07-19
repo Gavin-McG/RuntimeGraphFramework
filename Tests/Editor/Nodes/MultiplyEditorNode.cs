@@ -20,9 +20,9 @@ namespace RuntimeGraphFramework.Tests.Editor
 
         protected override void DefineRuntimeNode(GraphImportContext context, MultiplyNode node)
         {
-            node.input1 = _input1Port.GetInputPortReference(context);
-            node.input2 = _input2Port.GetInputPortReference(context);
-            node.output = _outputPort.GetOutputPortReference(context);
+            node.input1 = _input1Port.GetRuntimePortReference(context);
+            node.input2 = _input2Port.GetRuntimePortReference(context);
+            node.output = _outputPort.GetRuntimePortReference(context);
         }
     }
 }

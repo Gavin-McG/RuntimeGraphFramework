@@ -8,7 +8,7 @@ namespace RuntimeGraphFramework
         public void ClearVariables();
         public Type GetVariableType(string variableName);
         
-        public void SetVariable<T>(string variableName, T value);
+        public bool TrySetVariable<T>(string variableName, T value);
 
         public bool TryGetVariable<T>(string variableName, out T value);
     }

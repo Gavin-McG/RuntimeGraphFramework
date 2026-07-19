@@ -91,12 +91,12 @@ namespace RuntimeGraphFramework.Editor
             TryRegisterPorts();
             foreach (var port in _inputPorts)
             {
-                var InputPort = port.CreateRuntimeInputPort(context);
+                var InputPort = port.CreateRuntimePort(context, newNode);
                 newNode.inputPorts.Add(InputPort);
             }
             foreach (var port in _outputPorts)
             {
-                var OutputPort = port.CreateRuntimeOutputPort(newNode);
+                var OutputPort = port.CreateRuntimePort(context, newNode);
                 newNode.outputPorts.Add(OutputPort);
             }
             

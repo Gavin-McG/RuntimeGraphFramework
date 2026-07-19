@@ -101,10 +101,14 @@ namespace RuntimeGraphFramework
             return _casts.ContainsKey(key);
         }
        
-        public static TInput GetCastedValue<TOutput, TInput, TGraph>(TOutput output)
+        public static bool TryCastValue<TOutput, TInput, TGraph>(TOutput output, out TInput value)
         {
+            // Cast using builtin cast
             if (typeof(TInput).IsAssignableFrom(typeof(TOutput)))
-                return (TInput)(object)output;
+            {
+                value = (TInput)(object)output;
+                return true;
+            }
 
             var key = new LookupKey(
                 typeof(TOutput),
@@ -113,10 +117,13 @@ namespace RuntimeGraphFramework
 
             if (!_casts.TryGetValue(key, out var del))
             {
-                throw new InvalidOperationException($"No port cast exists from {key.OutputType} to {key.InputType} for graph {key.GraphType}.");
+                Debug.LogWarning($"No port cast exists from {key.OutputType} to {key.InputType} for graph {key.GraphType}.");
+                value = default;
+                return false;
             }
 
-            return (TInput)del(output);
+            value = (TInput)del(output);
+            return true;
         }
     }
 }

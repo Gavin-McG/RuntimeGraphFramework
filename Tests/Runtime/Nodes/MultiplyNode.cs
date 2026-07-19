@@ -4,17 +4,17 @@ namespace RuntimeGraphFramework.Tests
 {
     public class MultiplyNode : RuntimeNode
     {
-        [SerializeField] public InputPortReference input1;
-        [SerializeField] public InputPortReference input2;
-        [SerializeField] public OutputPortReference output;
+        [SerializeField] public RuntimePortReference input1;
+        [SerializeField] public RuntimePortReference input2;
+        [SerializeField] public RuntimePortReference output;
 
         protected override void UpdateNodeOutputs(IQueryContext context)
         {
-            var value1 = input1.GetValue<float>(context);
-            var value2 = input2.GetValue<float>(context);
+            input1.TryGetValue<float>(context, out var value1);
+            input2.TryGetValue<float>(context, out var value2);
             
             var result = value1 * value2;
-            output.SetValue(result);
+            output.TrySetValue(context, result);
         }
     }
 }

@@ -25,15 +25,16 @@ namespace RuntimeGraphFramework.Editor
         public void ClearVariables()
         {
         }
-
-        public void SetVariable<T>(string variableName, T value)
-        {
-        }
-
+        
         public bool TryGetVariable<T>(string variableName, out T value)
         {
             value = default;
             return true;
+        }
+        
+        public bool TrySetVariable<T>(string variableName, T value)
+        {
+            return false;
         }
     }
 }

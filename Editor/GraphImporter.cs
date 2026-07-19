@@ -43,22 +43,23 @@ namespace RuntimeGraphFramework.Editor
                 
                 // Remove Input Port references to Constant Nodes
                 constantContext.RefreshQueryID();
-                foreach (var runtimeNode in runtimeNodes)
-                {
-                    for (int i = 0; i < runtimeNode.inputPorts.Count; ++i)
-                    {
-                        InputPort inputPort = runtimeNode.inputPorts[i];
-                        if (inputPort.PortKind != InputPortKind.Connected) continue;
-                        
-                        var outputPort = inputPort.PortReference;
-                        if (!constantNodes.Contains(outputPort.Node)) continue;
-
-                        runtimeNode.inputPorts[i] = inputPort.CreateConstantInputPort(
-                            context,
-                            outputPort.GetValue<object>(constantContext)
-                        );
-                    }
-                }
+                // foreach (var runtimeNode in runtimeNodes)
+                // {
+                //     for (int i = 0; i < runtimeNode.inputPorts.Count; ++i)
+                //     {
+                //         RuntimePort inputPort = runtimeNode.inputPorts[i];
+                //         if (true) continue; //TODO
+                //         
+                //         var outputPort = inputPort.FirstConnectedPort;
+                //         if (outputPort == null) continue;
+                //         if (!constantNodes.Contains(outputPort.GetNode())) continue;
+                //
+                //         runtimeNode.inputPorts[i] = inputPort.CreateConstantInputPort(
+                //             context,
+                //             outputPort.GetValue<object>(constantContext)
+                //         );
+                //     }
+                // }
             } while (constantNodes.Count != 0);
         }
         
