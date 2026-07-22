@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Unity.GraphToolkit.Editor;
+using UnityEditor;
 using UnityEngine;
 
 namespace RuntimeGraphFramework.Editor
@@ -36,6 +37,24 @@ namespace RuntimeGraphFramework.Editor
             Graph subgraph = _subgraphNode.GetSubgraph();
             var subgraphGuid = subgraph.AssetGuid;
             node.subgraphType = subgraphGuid==default ? SubgraphType.Local : SubgraphType.Asset;
+            
+            // Get subgraph
+            if (subgraph is not EditorGraph editorGraph) 
+                throw new NotSupportedException($"Subgraph is not EditorGraph {_subgraphNode.ID}");
+
+            if (node.subgraphType == SubgraphType.Local)
+            {
+                var localGraph = editorGraph.CreateGraph(context);
+                localGraph.name = _subgraphNode.Title;
+                node.subgraph = localGraph;
+            }
+            else if (node.subgraphType == SubgraphType.Asset)
+            {
+                var assetGraph = AssetDatabase.LoadAssetByGUID<RuntimeGraph>(subgraph.AssetGuid);
+                if (assetGraph == null) throw new Exception($"Could not reference Graph {subgraph.AssetGuid}");
+                node.subgraph = assetGraph;
+            }
+            else throw new NotSupportedException();
         }
         
         // IEditorNode definitions

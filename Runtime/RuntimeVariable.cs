@@ -4,32 +4,47 @@ using UnityEngine;
 namespace RuntimeGraphFramework
 {
     [Serializable]
-    public class RuntimeVariable
+    public class RuntimeVariable : IRuntimeVariable
     {
-        [SerializeReference] private ValueWrapper valueWrapper;
+        [SerializeField] private string _name;
+        [SerializeField] private RuntimeGraph _graph;
+        [SerializeField] private Hash128 _id;
+        [SerializeField] private RuntimeVariableKind _variableKind;
+        [SerializeReference] private ValueWrapper _valueWrapper;
 
-        private RuntimeVariable(ValueWrapper valueWrapper)
+        public RuntimeVariable(string name, RuntimeGraph graph, Hash128 id, RuntimeVariableKind variableKind, object value)
         {
-            this.valueWrapper = valueWrapper;
+            _name = name;
+            _graph = graph;
+            _id = id;
+            _variableKind = variableKind;
+            
+            if (value == null)
+            {
+                _valueWrapper = null;
+            }
+            else
+            {
+                var wrapperType = typeof(ValueWrapper<>).MakeGenericType(value.GetType());
+                _valueWrapper = Activator.CreateInstance(wrapperType, value) as ValueWrapper;
+            }
         }
 
-        public static RuntimeVariable CreateVariable<T>(T value)
-        {
-            return new RuntimeVariable(new ValueWrapper<T>(value));
-        }
-        
-        public Type DataType => valueWrapper.DataType;
+        public string Name => _name;
+        public Type DataType => _valueWrapper?.DataType;
+        public RuntimeGraph Graph => _graph;
+        public Hash128 ID => _id;
+        public RuntimeVariableKind VariableKind => _variableKind;
 
-        public T GetValue<T>()
+        public bool TryGetDefaultValue<T>(out T defaultValue)
         {
-            if (typeof(T) == valueWrapper.DataType) return valueWrapper.GetValue<T>();
-            throw new ArgumentException();
-        }
-
-        public void SetValue<T>(T value)
-        {
-            if (typeof(T) == valueWrapper.DataType) valueWrapper.SetValue(value);
-            else throw new ArgumentException();
+            if (DataType == typeof(T))
+            {
+                defaultValue = default;
+                return false;
+            }
+            
+            return _valueWrapper.TryGetValue<T>(out defaultValue);
         }
     }
 }

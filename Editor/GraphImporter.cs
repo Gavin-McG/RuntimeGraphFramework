@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Unity.GraphToolkit.Editor;
-using UnityEditor;
+﻿using Unity.GraphToolkit.Editor;
 using UnityEditor.AssetImporters;
 using UnityEngine;
 
@@ -62,82 +58,34 @@ namespace RuntimeGraphFramework.Editor
         //         }
         //     } while (constantNodes.Count != 0);
         // }
-
-        private void ClearNodeData()
-        {
-            var editorNodes = editorGraph.GetNodes<IEditorNode<RuntimeNode>>().ToList();
-            foreach (var editorNode in editorNodes)
-            {
-                editorNode.ClearData();
-            }
-        }
         
         public override void OnImportAsset(AssetImportContext ctx)
         {
             editorGraph = GraphDatabase.LoadGraphForImporter<TEditorGraph>(ctx.assetPath);
 
             // Create main Graph asset
-            var runtimeGraph = ScriptableObject.CreateInstance<TRuntimeGraph>();
-            runtimeGraph.graphID = editorGraph.ID;
-            ctx.AddObjectToAsset(runtimeGraph.GetType().Name, runtimeGraph);
-            ctx.SetMainObject(runtimeGraph);
-            
-            // Clear existing nodes' Data
-            ClearNodeData();
-            
-            // Print out un-addable Variables
-            var variableGroups = editorGraph.GetVariableGroups().ToList();
-            foreach (var variableGroup in variableGroups)
-            {
-                if (variableGroup.Any(variable => 
-                        variable.VariableKind == VariableKind.Local && 
-                        variable.DataType != typeof(Untyped) && 
-                        variable.DataType != variableGroup.First().DataType
-                    )) {
-                    Debug.LogError($"Could not include Variable \"{variableGroup.Key}\" in the Graph because there are multiple definitions. The default values will be used for all instances of this variable name (at <a href=\"{assetPath}\">{assetPath}</a>)", runtimeGraph);
-                }
-            }
-            
-            // Add all variables to Graph
-            var validVariables = editorGraph.GetValidVariables(variableGroups);
-            runtimeGraph.variables = validVariables.ToDictionary(
-                variable => variable.Name,
-                variable => variable.GetRuntimeVariable()
-            );
-
-            // Define graph
             var importContext = new GraphImportContext()
             {
-                assetContext = ctx,
-                runtimeGraph = runtimeGraph,
-                validVariables = validVariables
+                assetContext = ctx
             };
-            DefineRuntimeGraph(runtimeGraph, importContext);
-            
-            // Get all Nodes connected to Enter Nodes
-            var editorNode = editorGraph.GetNodes<IEditorNode<RuntimeNode>>();
-            var runtimeNodes = editorNode
-                .Where(node => node.IsCreated)
-                .Select(node => node.GetRuntimeNode(importContext))
-                .ToList();
-            runtimeNodes.AddRange(importContext.ConstantNodes.Select(node => node.GetRuntimeNode(importContext)));
-            runtimeNodes.AddRange(importContext.VariableNodes.Select(node => node.GetRuntimeNode(importContext)));
-            runtimeNodes.AddRange(importContext.SubgraphNodes.Select(node => node.GetRuntimeNode(importContext)));
 
+            var runtimeGraph = editorGraph.CreateGraph(importContext);
+            
             // Remove all Nodes that can be pre-computed
             if (!DebugMode)
             {
                 //RemoveConstantNodes(runtimeNodes, importContext);
             }
-
-            // Add all remaining Nodes to the asset
-            foreach (var runtimeNode in runtimeNodes)
+            
+            // Add assets to Graph
+            foreach (var asset in importContext.Assets)
             {
-                if (!DeveloperMode) runtimeNode.hideFlags = HideFlags.HideInHierarchy;
-                ctx.AddObjectToAsset(runtimeNode.nodeID.ToString(), runtimeNode);
+                if (asset is RuntimeGraph graph) ctx.AddObjectToAsset(graph.graphID.ToString(), asset);
+                else if (asset is RuntimeNode node) ctx.AddObjectToAsset(node.ID.ToString(), node); 
+                else ctx.AddObjectToAsset(asset.GetHashCode().ToString(), asset);
             }
+            
+            ctx.SetMainObject(runtimeGraph);
         }
-        
-        public abstract void DefineRuntimeGraph(TRuntimeGraph runtimeGraph, GraphImportContext ctx);
     }
 }

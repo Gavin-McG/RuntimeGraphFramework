@@ -3,6 +3,12 @@ using UnityEngine;
 
 namespace RuntimeGraphFramework
 {
+    public enum RuntimePortDirection
+    {
+        Input,
+        Output,
+    }
+    
     public interface IRuntimePort
     {
         string Name { get; }

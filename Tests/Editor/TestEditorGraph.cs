@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using RuntimeGraphFramework.Editor;
 using Unity.GraphToolkit.Editor;
 using UnityEditor;
@@ -16,5 +17,11 @@ namespace RuntimeGraphFramework.Tests.Editor
         {
             GraphDatabase.PromptInProjectBrowserToCreateNewAsset<TestEditorGraph>();
         }
+        
+        protected override void DefineRuntimeGraph(GraphImportContext ctx, TestGraph runtimeGraph)
+        {
+            runtimeGraph.startNodes = this.GetNodes<StartEditorNode>(false).Select(node => node.GetRuntimeNode(ctx)).ToList();
+        }
+
     }
 }

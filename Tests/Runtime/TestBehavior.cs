@@ -11,7 +11,7 @@ namespace RuntimeGraphFramework.Tests
 
         private void Start()
         {
-            _graph.nodes.First()._inputPort.TryGetValue(new BlankQueryContext(), out string value);
+            _graph.startNodes.First()._inputPort.TryGetValue(new BlankQueryContext(), out string value);
             Debug.Log(value);
         }
     }

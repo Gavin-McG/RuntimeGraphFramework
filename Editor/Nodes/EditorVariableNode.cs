@@ -32,8 +32,16 @@ namespace RuntimeGraphFramework.Editor
         public void InitializeRuntimeNode(GraphImportContext context, RuntimeVariableNode node)
         {
             node.name = "VariableNode";
-            
-            node.outputPort = _variableNode.GetOutputPort(0).GetRuntimePortReference(context);
+
+            var variable = _variableNode.Variable;
+            var editorPort = variable.VariableKind switch
+            {
+                VariableKind.Local => _variableNode.GetOutputPort(0),
+                VariableKind.Input => _variableNode.GetOutputPort(0),
+                VariableKind.Output => _variableNode.GetInputPort(0),
+                _ => throw new NotSupportedException()
+            };
+            node.outputPort = editorPort.GetRuntimePortReference(context);
             node.variableName = _variableNode.Variable.Name;
         }
         

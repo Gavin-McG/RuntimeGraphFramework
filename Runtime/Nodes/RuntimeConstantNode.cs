@@ -9,7 +9,8 @@ namespace RuntimeGraphFramework
         
         protected override void UpdateNodeOutputs(IQueryContext context)
         {
-            _outputPort.TrySetValue(context, _valueWrapper.GetValue<object>());
+            _valueWrapper.TryGetValue(out object value);
+            _outputPort.TrySetValue(context, value);
         }
     }
 }

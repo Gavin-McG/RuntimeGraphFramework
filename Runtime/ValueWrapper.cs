@@ -7,8 +7,8 @@ namespace RuntimeGraphFramework
     public abstract class ValueWrapper
     {
         public abstract Type DataType { get; }
-        public abstract T GetValue<T>();
-        public abstract void SetValue<T>(T value);
+        public abstract bool TryGetValue<T>(out T value);
+        public abstract bool TrySetValue<T>(T value);
     }
 
     [Serializable]
@@ -23,16 +23,27 @@ namespace RuntimeGraphFramework
             _value = value;
         }
             
-        public override T GetValue<T>()
+        public override bool TryGetValue<T>(out T value)
         {
-            if (typeof(T).IsAssignableFrom(typeof(U))) return (T)(object)_value;
-            throw new ArgumentException($"Type {typeof(T)} did not match parameter type {typeof(T)}");
+            if (typeof(T).IsAssignableFrom(typeof(U)))
+            {
+                value = (T)(object)_value;
+                return true;
+            }
+            
+            value = default;
+            return false;
         }
 
-        public override void SetValue<T>(T value)
+        public override bool TrySetValue<T>(T value)
         {
-            if (typeof(U).IsAssignableFrom(typeof(T))) _value = (U)(object)value;
-            else throw new ArgumentException($"Type {typeof(T)} did not match parameter type {typeof(T)}");
+            if (typeof(U).IsAssignableFrom(typeof(T)))
+            {
+                _value = (U)(object)value;
+                return true;
+            }
+            
+            return false;
         }
     }
 }

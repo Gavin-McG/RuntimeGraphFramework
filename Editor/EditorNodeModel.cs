@@ -64,10 +64,11 @@ namespace RuntimeGraphFramework.Editor
             
             // Create instance
             _node = ScriptableObject.CreateInstance<TRuntimeNode>();
-            _node.name = typeof(TRuntimeNode).Name;
-            _node.graph = context.runtimeGraph;
+            context.AddAsset(_node);
             
-            // Set ID
+            // Set fields
+            _node.name = typeof(TRuntimeNode).Name;
+            _node.graph = context.Graph;
             _node.nodeID = _owner.ID;
             
             // Create ports

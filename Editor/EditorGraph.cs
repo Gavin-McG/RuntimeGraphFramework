@@ -2,16 +2,66 @@
 using System.Collections.Generic;
 using System.Linq;
 using Unity.GraphToolkit.Editor;
+using UnityEditor.AssetImporters;
+using UnityEngine;
 
 namespace RuntimeGraphFramework.Editor
 {
     [Serializable]
-    public abstract class EditorGraph<TGraph> : Graph where TGraph : RuntimeGraph
+    public abstract class EditorGraph : Graph
+    {
+        public abstract RuntimeGraph CreateGraph(GraphImportContext context);
+    }
+    
+    [Serializable]
+    public abstract class EditorGraph<TGraph> : EditorGraph where TGraph : RuntimeGraph
     {
         public bool CanTypesConnect(Type outputType, Type inputType)
         {
             return PortTypeCastManager.CanTypesCast<TGraph>(outputType, inputType);
         }
+        
+        private void ClearNodeData()
+        {
+            var editorNodes = this.GetNodes<IEditorNode<RuntimeNode>>().ToList();
+            foreach (var editorNode in editorNodes)
+            {
+                editorNode.ClearData();
+            }
+        }
+
+
+        public override RuntimeGraph CreateGraph(GraphImportContext context)
+        {
+            var runtimeGraph = ScriptableObject.CreateInstance<TGraph>();
+            context.EnterGraph(runtimeGraph);
+            context.AddAsset(runtimeGraph);
+            
+            runtimeGraph.graphID = ID;
+            
+            // Add all variables to Graph
+            runtimeGraph.variables = GetRuntimeVariables(context).ToList();
+
+            // Define graph
+            ClearNodeData();
+            DefineRuntimeGraph(context, runtimeGraph);
+            
+            // Add all Nodes to graph
+            var editorNode = this.GetNodes<IEditorNode<RuntimeNode>>();
+            runtimeGraph.nodes = editorNode
+                .Where(node => node.IsCreated)
+                .Select(node => node.GetRuntimeNode(context))
+                .ToList();
+            runtimeGraph.nodes.AddRange(context.ConstantNodes.Select(node => node.GetRuntimeNode(context)));
+            runtimeGraph.nodes.AddRange(context.VariableNodes.Select(node => node.GetRuntimeNode(context)));
+            runtimeGraph.nodes.AddRange(context.SubgraphNodes.Select(node => node.GetRuntimeNode(context)));
+            runtimeGraph.nodes.AddRange(context.MissingNodes.Select(node => node.GetRuntimeNode(context)));
+            
+            context.ExitGraph();
+            return runtimeGraph;
+        }
+        
+        protected virtual void DefineRuntimeGraph(GraphImportContext ctx, TGraph runtimeGraph) {}
         
         public override bool IsConnectionAllowed(IPort output, IPort input)
         {
@@ -40,23 +90,12 @@ namespace RuntimeGraphFramework.Editor
             // Allow by Default
             return true;
         }
-        
-        public IEnumerable<IGrouping<string, IVariable>> GetVariableGroups()
-        {
-            return GetVariables(SortMethod.Creation).GroupBy(variable => variable.Name);
-        }
 
-        public HashSet<IVariable> GetValidVariables(IEnumerable<IGrouping<string, IVariable>> variableGroups)
+        public IEnumerable<RuntimeVariable> GetRuntimeVariables(GraphImportContext context)
         {
-            return variableGroups
-                .Where(group => group.Count() == 1 && group.First().DataType != typeof(Untyped))
-                .Select(group => group.First())
-                .ToHashSet();
-        }
-
-        public HashSet<IVariable> GetValidVariables()
-        {
-            return GetValidVariables(GetVariableGroups());
+            return GetVariables(SortMethod.Display)
+                .GroupBy(variable => variable.Name)
+                .Select(group => group.First().CreateRuntimeVariable(context));
         }
     }
 }

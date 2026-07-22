@@ -9,17 +9,34 @@ namespace RuntimeGraphFramework.Editor
     public class GraphImportContext
     {
         public AssetImportContext assetContext;
-        public RuntimeGraph runtimeGraph;
-        public HashSet<IVariable> validVariables;
+        private readonly Stack<RuntimeGraph> graphStack = new Stack<RuntimeGraph>();
 
         private readonly Dictionary<Hash128, EditorConstantNode> constantNodes = new();
         private readonly Dictionary<Hash128, EditorVariableNode> variableNodes = new();
         private readonly Dictionary<Hash128, EditorSubgraphNode> subgraphNodes = new();
+        private readonly Dictionary<Hash128, EditorMissingNode> missingNodes = new();
         
-        public Type GraphType => runtimeGraph.GetType();
+        private readonly List<UnityEngine.Object> assets = new List<UnityEngine.Object>();
+        
+        public RuntimeGraph Graph => graphStack.Peek();
+        public Type GraphType => graphStack.Peek().GetType();
+        
         public IEnumerable<EditorConstantNode> ConstantNodes => constantNodes.Values;
         public IEnumerable<EditorVariableNode> VariableNodes => variableNodes.Values;
         public IEnumerable<EditorSubgraphNode> SubgraphNodes => subgraphNodes.Values;
+        public IEnumerable<EditorMissingNode> MissingNodes => missingNodes.Values;
+        
+        public IEnumerable<UnityEngine.Object> Assets => assets;
+
+        public void EnterGraph(RuntimeGraph graph)
+        {
+            graphStack.Push(graph);
+        }
+
+        public void ExitGraph()
+        {
+            graphStack.Pop();
+        }
 
         public EditorConstantNode GetConstantNode(IConstantNode constantNode)
         {
@@ -52,6 +69,22 @@ namespace RuntimeGraphFramework.Editor
             var newNode = new EditorSubgraphNode(subgraphNode);
             subgraphNodes.Add(nodeID, newNode);
             return newNode;
+        }
+
+        public EditorMissingNode GetMissingNode(INode node)
+        {
+            Hash128 nodeID = node.ID;
+            if (missingNodes.TryGetValue(nodeID, out EditorMissingNode editorNode)) return editorNode;
+            
+            // Create new EditorMissingNode
+            var newNode = new EditorMissingNode(node);
+            missingNodes.Add(nodeID, newNode);
+            return newNode;
+        }
+
+        public void AddAsset(UnityEngine.Object asset)
+        {
+            assets.Add(asset);
         }
     }
 }

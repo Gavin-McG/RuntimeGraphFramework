@@ -127,7 +127,7 @@ namespace RuntimeGraphFramework.Editor
                 return editorSubgraphNode.GetRuntimeNode(context);
             }
 
-            throw new ArgumentException($"Node cannot be converted to RuntimeNode: {node.GetType()}");
+            throw new ArgumentException($"Node type is not supported: {node.GetType()}");
         }
     }
 }

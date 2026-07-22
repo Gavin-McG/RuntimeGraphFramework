@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Unity.GraphToolkit.Editor;
+using UnityEngine;
 
 namespace RuntimeGraphFramework.Editor
 {
@@ -39,6 +40,28 @@ namespace RuntimeGraphFramework.Editor
             }
             
             return graph.GetNodes().SelectMany(GetNodesHelper).Distinct();
+        }
+
+        public static List<Graph> GetAllSubgraphs(this Graph graph)
+        {
+            List<Graph> subgraphs = new List<Graph>();
+            void GetAllSubgraphsHelper(Graph graph, HashSet<Hash128> graphIDs)
+            {
+                var subgraphNodes = graph.GetNodes<ISubgraphNode>();
+                foreach (var subgraphNode in subgraphNodes)
+                {
+                    var subgraph = subgraphNode.GetSubgraph();
+                    if (graphIDs.Add(subgraph.ID))
+                    {
+                        subgraphs.Add(subgraph);
+                        GetAllSubgraphsHelper(subgraph, graphIDs);
+                    }
+                }
+            }
+
+            HashSet<Hash128> graphIDs = new();
+            GetAllSubgraphsHelper(graph, graphIDs);
+            return subgraphs;
         }
         
         public static IVariable GetOutputVariableOfPort(this ISubgraphNode subgraphNode, IPort outputPort)

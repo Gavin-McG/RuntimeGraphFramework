@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.GraphToolkit.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,7 +6,7 @@ namespace RuntimeGraphFramework.Tests
 {
     public class TestGraph : RuntimeGraph
     {
-        [SerializeField] public List<StartNode> nodes;
+        [SerializeField] public List<StartNode> startNodes = new List<StartNode>();
 
         #if UNITY_EDITOR
         [InitializeOnLoadMethod]
