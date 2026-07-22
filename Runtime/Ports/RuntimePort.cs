@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace RuntimeGraphFramework
 {
@@ -19,7 +18,7 @@ namespace RuntimeGraphFramework
 
         public abstract Type DataType { get; }
         public abstract bool IsConnected { get; }
-        public abstract RuntimePort FirstConnectedPort { get; }
+        public abstract IRuntimePort FirstConnectedPort { get; }
 
         protected RuntimePort(string name, int index, Hash128 id, RuntimePortDirection direction, RuntimeNode node)
         {
@@ -30,8 +29,13 @@ namespace RuntimeGraphFramework
             _node = node;
         }
         
-        public RuntimeNode GetNode() => _node;
+        public IRuntimeNode GetNode() => _node;
 
+        public virtual void Connect(RuntimePortReference portReference)
+        {
+            throw new NotImplementedException();
+        }
+        
         public RuntimePortReference GetPortReference() => new RuntimePortReference(_node, _direction, _index);
         
         public abstract bool TryGetValue<T>(IQueryContext context, out T value);

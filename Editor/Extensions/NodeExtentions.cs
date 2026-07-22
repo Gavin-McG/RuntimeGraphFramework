@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.GraphToolkit.Editor;
 using UnityEngine;
@@ -93,6 +94,38 @@ namespace RuntimeGraphFramework.Editor
             HashSet<Hash128> visited = new HashSet<Hash128>();
             GetRequiredVariablesHelper(node, set, visited);
             return set.ToList();
+        }
+
+        public static RuntimeNode GetRuntimeNode(this INode node, GraphImportContext context)
+        {
+            if (node == null) return null;
+
+            // IEditorNode
+            if (node is IEditorNode<RuntimeNode> editorNode)
+            {
+                return editorNode.GetRuntimeNode(context);
+            }
+            
+            // IConstantNode
+            if (node is IConstantNode constantNode)
+            {
+                var editorConstantNode = context.GetConstantNode(constantNode);
+                return editorConstantNode.GetRuntimeNode(context);
+            }
+
+            // IVariableNode
+            if (node is IVariableNode variableNode)
+            {
+                throw new NotImplementedException();
+            }
+
+            // ISubgraphNode
+            if (node is ISubgraphNode subgraphNode)
+            {
+                throw new NotImplementedException();
+            }
+
+            throw new ArgumentException($"Node cannot be converted to RuntimeNode: {node.GetType()}");
         }
     }
 }

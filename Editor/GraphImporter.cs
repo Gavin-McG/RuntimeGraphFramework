@@ -20,47 +20,56 @@ namespace RuntimeGraphFramework.Editor
         
         protected TEditorGraph editorGraph;
         
-        private void RemoveConstantNodes(HashSet<RuntimeNode> runtimeNodes, GraphImportContext context)
+        // private void RemoveConstantNodes(HashSet<RuntimeNode> runtimeNodes, GraphImportContext context)
+        // {
+        //     // Delete all Constants iteratively
+        //     var constantContext = new BlankQueryContext();
+        //     var constantNodes = new HashSet<RuntimeNode>();
+        //     do
+        //     {
+        //         // Remove and clear constant Nodes
+        //         foreach (var constantNode in constantNodes)
+        //         {
+        //             runtimeNodes.Remove(constantNode);
+        //             DestroyImmediate(constantNode);
+        //         }
+        //         constantNodes.Clear();
+        //         
+        //         // Find all current Constant Nodes
+        //         foreach (var runtimeNode in runtimeNodes)
+        //         {
+        //             if (runtimeNode.IsConstantNode()) constantNodes.Add(runtimeNode);
+        //         }
+        //         
+        //         // Remove Input Port references to Constant Nodes
+        //         constantContext.RefreshQueryID();
+        //         foreach (var runtimeNode in runtimeNodes)
+        //         {
+        //             for (int i = 0; i < runtimeNode.inputPorts.Count; ++i)
+        //             {
+        //                 RuntimePort inputPort = runtimeNode.inputPorts[i];
+        //                 if (true) continue; //TODO
+        //                 
+        //                 var outputPort = inputPort.FirstConnectedPort;
+        //                 if (outputPort == null) continue;
+        //                 if (!constantNodes.Contains(outputPort.GetNode())) continue;
+        //         
+        //                 runtimeNode.inputPorts[i] = inputPort.CreateConstantInputPort(
+        //                     context,
+        //                     outputPort.GetValue<object>(constantContext)
+        //                 );
+        //             }
+        //         }
+        //     } while (constantNodes.Count != 0);
+        // }
+
+        private void ClearNodeData()
         {
-            // Delete all Constants iteratively
-            var constantContext = new BlankQueryContext();
-            var constantNodes = new HashSet<RuntimeNode>();
-            do
+            var editorNodes = editorGraph.GetNodes<IEditorNode<RuntimeNode>>().ToList();
+            foreach (var editorNode in editorNodes)
             {
-                // Remove and clear constant Nodes
-                foreach (var constantNode in constantNodes)
-                {
-                    runtimeNodes.Remove(constantNode);
-                    DestroyImmediate(constantNode);
-                }
-                constantNodes.Clear();
-                
-                // Find all current Constant Nodes
-                foreach (var runtimeNode in runtimeNodes)
-                {
-                    if (runtimeNode.IsConstantNode()) constantNodes.Add(runtimeNode);
-                }
-                
-                // Remove Input Port references to Constant Nodes
-                constantContext.RefreshQueryID();
-                // foreach (var runtimeNode in runtimeNodes)
-                // {
-                //     for (int i = 0; i < runtimeNode.inputPorts.Count; ++i)
-                //     {
-                //         RuntimePort inputPort = runtimeNode.inputPorts[i];
-                //         if (true) continue; //TODO
-                //         
-                //         var outputPort = inputPort.FirstConnectedPort;
-                //         if (outputPort == null) continue;
-                //         if (!constantNodes.Contains(outputPort.GetNode())) continue;
-                //
-                //         runtimeNode.inputPorts[i] = inputPort.CreateConstantInputPort(
-                //             context,
-                //             outputPort.GetValue<object>(constantContext)
-                //         );
-                //     }
-                // }
-            } while (constantNodes.Count != 0);
+                editorNode.ClearData();
+            }
         }
         
         public override void OnImportAsset(AssetImportContext ctx)
@@ -74,11 +83,7 @@ namespace RuntimeGraphFramework.Editor
             ctx.SetMainObject(runtimeGraph);
             
             // Clear existing nodes' Data
-            var editorNodes = editorGraph.GetNodes<IEditorNode<RuntimeNode>>().ToList();
-            foreach (var editorNode in editorNodes)
-            {
-                editorNode.ClearData();
-            }
+            ClearNodeData();
             
             // Print out un-addable Variables
             var variableGroups = editorGraph.GetVariableGroups().ToList();
@@ -105,20 +110,22 @@ namespace RuntimeGraphFramework.Editor
             {
                 assetContext = ctx,
                 runtimeGraph = runtimeGraph,
-                currentSubgraph = null,
                 validVariables = validVariables
             };
             DefineRuntimeGraph(runtimeGraph, importContext);
-
+            
             // Get all Nodes connected to Enter Nodes
-            var runtimeNodes = editorNodes
-                .SelectMany(editorNode => editorNode.GetRuntimeNodes())
-                .ToHashSet();
+            var editorNode = editorGraph.GetNodes<IEditorNode<RuntimeNode>>();
+            var runtimeNodes = editorNode
+                .Where(node => node.IsCreated)
+                .Select(node => node.GetRuntimeNode(importContext))
+                .ToList();
+            runtimeNodes.AddRange(importContext.ConstantNodes.Select(node => node.GetRuntimeNode(importContext)));
 
             // Remove all Nodes that can be pre-computed
             if (!DebugMode)
             {
-                RemoveConstantNodes(runtimeNodes, importContext);
+                //RemoveConstantNodes(runtimeNodes, importContext);
             }
 
             // Add all remaining Nodes to the asset

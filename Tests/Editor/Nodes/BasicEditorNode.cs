@@ -18,7 +18,7 @@ namespace RuntimeGraphFramework.Tests.Editor
 
         protected override void DefineRuntimeNode(GraphImportContext context, BasicNode node)
         {
-            node.nextNode = _nextPort.GetConnectedRuntimeNode<RuntimeNode>(context);
+            node.nextNode = _nextPort.FirstConnectedPort.GetNode().GetRuntimeNode(context);
         }
     }
 }

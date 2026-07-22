@@ -18,7 +18,7 @@ namespace RuntimeGraphFramework
         
         public override Type DataType => typeof(TConstant);
         public override bool IsConnected => false;
-        public override RuntimePort FirstConnectedPort => null;
+        public override IRuntimePort FirstConnectedPort => null;
 
         public ConstantRuntimePort(
             string name, int index, Hash128 id, RuntimePortDirection direction, RuntimeNode node, TConstant value) 

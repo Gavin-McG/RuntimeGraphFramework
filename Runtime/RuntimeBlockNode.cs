@@ -9,7 +9,5 @@ namespace RuntimeGraphFramework
         
         public IRuntimeContextNode ContextNode => contextNode;
         public int Index => index;
-        
-        public sealed override bool IsConstantNode() => false;
     }
 }

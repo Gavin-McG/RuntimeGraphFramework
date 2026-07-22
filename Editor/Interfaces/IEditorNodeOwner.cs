@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RuntimeGraphFramework.Editor
 {
-    public interface IEditorNodeOwner<TRuntimeNode>
+    public interface IEditorNodeOwner<in TRuntimeNode>
         where TRuntimeNode : RuntimeNode
     {
         Hash128 ID { get; }

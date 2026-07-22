@@ -11,8 +11,6 @@ namespace RuntimeGraphFramework
         protected OutputRuntimePort(
             string name, int index, Hash128 id, RuntimePortDirection direction, RuntimeNode node)
             : base(name, index, id, direction, node) {}
-        
-        public abstract void Connect(RuntimePortReference portReference);
     }
     
     [Serializable]
@@ -26,7 +24,7 @@ namespace RuntimeGraphFramework
 
         public override Type DataType => typeof(TOutput);
         public override bool IsConnected => _connections.Count != 0;
-        public override RuntimePort FirstConnectedPort => _connections.FirstOrDefault().GetPort();
+        public override IRuntimePort FirstConnectedPort => _connections.FirstOrDefault();
         
         public override void Connect(RuntimePortReference portReference)
         {

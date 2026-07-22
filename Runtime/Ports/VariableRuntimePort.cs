@@ -19,7 +19,7 @@ namespace RuntimeGraphFramework
         
         public override Type DataType => typeof(TVariable);
         public override bool IsConnected => false;
-        public override RuntimePort FirstConnectedPort => null;
+        public override IRuntimePort FirstConnectedPort => null;
 
         public VariableRuntimePort(
             string name, int index, Hash128 id, RuntimePortDirection direction, RuntimeNode node, string variableName) 

@@ -11,21 +11,18 @@ namespace RuntimeGraphFramework
         [SerializeField] public Hash128 nodeID;
         [SerializeReference] public List<RuntimePort> inputPorts = new();
         [SerializeReference] public List<RuntimePort> outputPorts = new();
-        [SerializeField] public bool hasUntypedPorts;
-        
-        private Hash128 previousQueryID;
         
         public RuntimeGraph Graph => graph;
         public Hash128 ID => nodeID;
         public int InputPortCount => inputPorts.Count;
         public int OutputPortCount => outputPorts.Count;
         
-        public RuntimePort GetOutputPort(int index) => outputPorts[index];
-        public RuntimePort GetInputPort(int index) => inputPorts[index];
-
-        public virtual bool IsConstantNode() => false; //inputPorts.All(port => port.PortKind == InputPortKind.Constant) && !hasUntypedPorts;
+        public IRuntimePort GetOutputPort(int index) => outputPorts.ElementAtOrDefault(index);
+        public IRuntimePort GetInputPort(int index) => inputPorts.ElementAtOrDefault(index);
         
         protected virtual void UpdateNodeOutputs(IQueryContext context) {}
+        
+        private Hash128 previousQueryID;
         
         public void UpdateNode(IQueryContext context)
         {

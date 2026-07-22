@@ -10,7 +10,7 @@ namespace RuntimeGraphFramework
         public int InputPortCount { get; }
         public int OutputPortCount { get; }
         
-        public RuntimePort GetInputPort(int index);
-        public RuntimePort GetOutputPort(int index);
+        public IRuntimePort GetInputPort(int index);
+        public IRuntimePort GetOutputPort(int index);
     }
 }

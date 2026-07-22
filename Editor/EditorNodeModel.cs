@@ -16,17 +16,19 @@ namespace RuntimeGraphFramework.Editor
             _owner = owner;
         }
         
-        private Dictionary<Hash128, TRuntimeNode> _nodes = new();
+        private TRuntimeNode _node;
         
         private bool _portsRegistered = false;
         private List<IPort> _outputPorts = new();
         private List<IPort> _inputPorts = new();
-        private Dictionary<IPort, int> _outputPortIndices = new();
-        private Dictionary<IPort, int> _inputPortIndices = new();
+        private readonly Dictionary<IPort, int> _outputPortIndices = new();
+        private readonly Dictionary<IPort, int> _inputPortIndices = new();
+        
+        public bool IsCreated => _node != null;
         
         public void ClearData()
         {
-            _nodes.Clear();
+            _node = null;
 
             _portsRegistered = false;
             _outputPorts.Clear();
@@ -54,63 +56,63 @@ namespace RuntimeGraphFramework.Editor
                 _inputPortIndices[port] = _inputPortIndices.Count;
             }
         }
-
-        private TRuntimeNode GetRegisteredNode(GraphImportContext context)
-        {
-            Hash128 nodeKey = default;
-            if (context.currentSubgraph != null) nodeKey = context.currentSubgraph.ID;
-            return _nodes.GetValueOrDefault(nodeKey);
-        }
-
-        private void RegisterNode(GraphImportContext context, TRuntimeNode node)
-        {
-            if (node == null) throw new ArgumentNullException(nameof(node));
-            Hash128 nodeKey = default;
-            if (context.currentSubgraph != null) nodeKey = context.currentSubgraph.ID;
-            _nodes[nodeKey] = node;
-        }
-
+        
         public TRuntimeNode GetRuntimeNode(GraphImportContext context)
         {
             // Check if already Initialized
-            var currentNode = GetRegisteredNode(context);
-            if (currentNode != null) return currentNode;
+            if (_node != null) return _node;
             
             // Create instance
-            var newNode = ScriptableObject.CreateInstance<TRuntimeNode>();
-            newNode.name = typeof(TRuntimeNode).Name;
-            newNode.graph = context.runtimeGraph;
-            RegisterNode(context, newNode);
+            _node = ScriptableObject.CreateInstance<TRuntimeNode>();
+            _node.name = typeof(TRuntimeNode).Name;
+            _node.graph = context.runtimeGraph;
             
             // Set ID
-            newNode.nodeID = _owner.ID;
-            if (context.currentSubgraph != null) 
-                newNode.nodeID.Append(context.currentSubgraph.ID.ToString());
+            _node.nodeID = _owner.ID;
             
             // Create ports
             TryRegisterPorts();
             foreach (var port in _inputPorts)
             {
-                var InputPort = port.CreateRuntimePort(context, newNode);
-                newNode.inputPorts.Add(InputPort);
+                var InputPort = port.CreateRuntimePort(context);
+                _node.inputPorts.Add(InputPort);
             }
             foreach (var port in _outputPorts)
             {
-                var OutputPort = port.CreateRuntimePort(context, newNode);
-                newNode.outputPorts.Add(OutputPort);
+                var OutputPort = port.CreateRuntimePort(context);
+                _node.outputPorts.Add(OutputPort);
             }
             
-            // Set untyped port bool
-            newNode.hasUntypedPorts = 
-                _owner.GetInputPorts().Any(port => port.DataType == typeof(Untyped)) ||
-                _owner.GetOutputPorts().Any(port => port.DataType == typeof(Untyped));
+            // Set port Connections
+            foreach (var port in _inputPorts)
+            {
+                var index = _inputPortIndices[port];
+                var connectedPorts = new List<IPort>();
+                port.GetConnectedPorts(connectedPorts);
+                connectedPorts.ForEach(port =>
+                {
+                    var portReference = port.GetRuntimePortReference(context);
+                    _node.inputPorts[index].Connect(portReference);
+                });
+            }
 
-            _owner.InitializeRuntimeNode(context, newNode);
-            return newNode;
+            foreach (var port in _outputPorts)
+            {
+                var index = _outputPortIndices[port];
+                var connectedPorts = new List<IPort>();
+                port.GetConnectedPorts(connectedPorts);
+                connectedPorts.ForEach(port =>
+                {
+                    var portReference = port.GetRuntimePortReference(context);
+                    _node.outputPorts[index].Connect(portReference);
+                });
+            }
+            
+            // Initialize Node data
+            _owner.InitializeRuntimeNode(context, _node);
+            return _node;
         }
         
-        public IEnumerable<TRuntimeNode> GetRuntimeNodes() =>_nodes.Select(node => node.Value);
-
         public bool TryGetOutputPortIndex(IPort port, out int portIndex)
         {
             TryRegisterPorts();

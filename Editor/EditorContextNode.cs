@@ -20,9 +20,9 @@ namespace RuntimeGraphFramework.Editor
             }
         }
         
+        public bool IsCreated => NodeModel.IsCreated;
         public void ClearData() => NodeModel.ClearData();
         public TRuntimeNode GetRuntimeNode(GraphImportContext context) => NodeModel.GetRuntimeNode(context);
-        public IEnumerable<TRuntimeNode> GetRuntimeNodes() => NodeModel.GetRuntimeNodes();
         public bool TryGetInputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetInputPortIndex(port, out portIndex);
         public bool TryGetOutputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetOutputPortIndex(port, out portIndex);
 

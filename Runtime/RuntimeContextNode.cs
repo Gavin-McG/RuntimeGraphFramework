@@ -11,7 +11,5 @@ namespace RuntimeGraphFramework
         
         public int BlockCount => blockNodes.Count;
         public IEnumerable<RuntimeBlockNode> BlockNodes => blockNodes;
-
-        public sealed override bool IsConstantNode() => false;
     }
 }

@@ -15,9 +15,9 @@ namespace RuntimeGraphFramework
 
         public override Type DataType => null;
         public override bool IsConnected => _connections.Count != 0;
-        public override RuntimePort FirstConnectedPort => _connections.FirstOrDefault().GetPort();
+        public override IRuntimePort FirstConnectedPort => _connections.FirstOrDefault().GetPort();
         
-        public void Connect(RuntimePortReference portReference)
+        public override void Connect(RuntimePortReference portReference)
         {
             _connections.Add(portReference);
         }

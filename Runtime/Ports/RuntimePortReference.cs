@@ -17,7 +17,7 @@ namespace RuntimeGraphFramework
             this.index = index;
         }
         
-        public RuntimePort GetPort()
+        public IRuntimePort GetPort()
         {
             if (node == null) return null;
             if (direction == RuntimePortDirection.Input) return node.GetInputPort(index);
@@ -31,9 +31,11 @@ namespace RuntimeGraphFramework
         public Type DataType => GetPort()?.DataType;
         public RuntimePortDirection Direction => direction;
         public bool IsConnected => GetPort()?.IsConnected ?? false;
-        public RuntimePort FirstConnectedPort => GetPort()?.FirstConnectedPort;
+        public IRuntimePort FirstConnectedPort => GetPort()?.FirstConnectedPort;
         
-        public RuntimeNode GetNode() => node;
+        public IRuntimeNode GetNode() => node;
+        
+        public RuntimePortReference GetPortReference() => this;
 
         public bool TryGetValue<T>(IQueryContext context, out T value)
         {

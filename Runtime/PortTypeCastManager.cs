@@ -34,8 +34,14 @@ namespace RuntimeGraphFramework
         }
         
         private static readonly Dictionary<LookupKey, Func<object, object>> _casts = new();
+
+        [RuntimeInitializeOnLoadMethod]
+        public static void ClearCasts()
+        {
+            _casts.Clear();
+        }
         
-        private static bool Validate(MethodInfo method, Type outputType, Type inputType)
+        private static bool Validate(MethodInfo method, Type inputType, Type outputType)
         {
             // Ensure that method is static
             if (!method.IsStatic)
@@ -53,39 +59,39 @@ namespace RuntimeGraphFramework
             }
 
             // Check parameter/return types
-            if (parameters[0].ParameterType != outputType)
+            if (parameters[0].ParameterType != inputType)
             {
-                Debug.LogError($"Cannot register Port Type cast: {method.Name} parameters must be of type {outputType}");
+                Debug.LogError($"Cannot register Port Type cast: {method.Name} parameters must be of type {inputType}");
                 return false;
             }
 
-            if (method.ReturnType != inputType)
+            if (method.ReturnType != outputType)
             {
-                Debug.LogError($"Cannot register Port Type cast: {method.Name} return must be of type {inputType}");
+                Debug.LogError($"Cannot register Port Type cast: {method.Name} return must be of type {outputType}");
                 return false;
             }
             
             return true;
         }
 
-        public static void Register<TOutput, TInput, TGraph>(Func<TOutput, TInput> cast)
+        public static void Register<TInput, TOutput, TGraph>(Func<TInput, TOutput> cast)
         {
             MethodInfo method = cast.Method;
-            if (!Validate(method, typeof(TOutput), typeof(TInput)))
+            if (!Validate(method, typeof(TInput), typeof(TOutput)))
                 return;
 
             var key = new LookupKey(
-                typeof(TOutput),
                 typeof(TInput),
+                typeof(TOutput),
                 typeof(TGraph));
 
-            Func<object, object> wrapper = obj => cast((TOutput)obj);
+            Func<object, object> wrapper = obj => cast((TInput)obj);
 
             if (!_casts.TryAdd(key, wrapper))
             {
                 Debug.LogError(
                     $"Duplicate type cast registered for {typeof(TGraph).Name}: " +
-                    $"{typeof(TOutput).Name} -> {typeof(TInput).Name}");
+                    $"{typeof(TInput).Name} -> {typeof(TOutput).Name}");
             }
         }
 
@@ -101,29 +107,34 @@ namespace RuntimeGraphFramework
             return _casts.ContainsKey(key);
         }
        
-        public static bool TryCastValue<TOutput, TInput, TGraph>(TOutput output, out TInput value)
+        public static bool TryCastValue<TInput, TOutput, TGraph>(TInput input, out TOutput output)
         {
             // Cast using builtin cast
-            if (typeof(TInput).IsAssignableFrom(typeof(TOutput)))
+            if (typeof(TOutput).IsAssignableFrom(input.GetType()))
             {
-                value = (TInput)(object)output;
+                output = (TOutput)(object)input;
+                return true;
+            }
+            
+            // Attempt to cast the value using more specific runtime type
+            var runtimeKey = new LookupKey(input.GetType(), typeof(TOutput), typeof(TGraph));
+            if (_casts.TryGetValue(runtimeKey, out var runtimeFunc))
+            {
+                output = (TOutput)runtimeFunc(input);
                 return true;
             }
 
-            var key = new LookupKey(
-                typeof(TOutput),
-                typeof(TInput),
-                typeof(TGraph));
-
-            if (!_casts.TryGetValue(key, out var del))
+            // Attempt to cast the value using generic parameter
+            var genericKey = new LookupKey(typeof(TInput), typeof(TOutput), typeof(TGraph));
+            if (_casts.TryGetValue(genericKey, out var genericFunc))
             {
-                Debug.LogWarning($"No port cast exists from {key.OutputType} to {key.InputType} for graph {key.GraphType}.");
-                value = default;
-                return false;
+                output = (TOutput)genericFunc(input);
+                return true;
             }
-
-            value = (TInput)del(output);
-            return true;
+            
+            Debug.LogError($"No Port cast Registered from {typeof(TInput).Name} to {typeof(TOutput).Name} for Graph type {typeof(TGraph).Name}.");
+            output = default;
+            return false;
         }
     }
 }

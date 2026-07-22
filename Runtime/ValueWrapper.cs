@@ -25,13 +25,13 @@ namespace RuntimeGraphFramework
             
         public override T GetValue<T>()
         {
-            if (typeof(T) == typeof(U)) return (T)(object)_value;
+            if (typeof(T).IsAssignableFrom(typeof(U))) return (T)(object)_value;
             throw new ArgumentException($"Type {typeof(T)} did not match parameter type {typeof(T)}");
         }
 
         public override void SetValue<T>(T value)
         {
-            if (typeof(T) == typeof(U)) _value = (U)(object)value;
+            if (typeof(U).IsAssignableFrom(typeof(T))) _value = (U)(object)value;
             else throw new ArgumentException($"Type {typeof(T)} did not match parameter type {typeof(T)}");
         }
     }

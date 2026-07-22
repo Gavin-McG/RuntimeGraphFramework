@@ -10,9 +10,10 @@ namespace RuntimeGraphFramework
         Type DataType { get; }
         RuntimePortDirection Direction { get; }
         bool IsConnected { get; }
-        RuntimePort FirstConnectedPort { get; }
+        IRuntimePort FirstConnectedPort { get; }
         
-        RuntimeNode GetNode();
+        IRuntimeNode GetNode();
+        RuntimePortReference GetPortReference();
         
         bool TryGetValue<T>(IQueryContext context, out T value);
         bool TrySetValue<T>(IQueryContext context, T value);

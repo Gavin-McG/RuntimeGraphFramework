@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace RuntimeGraphFramework.Editor
+namespace RuntimeGraphFramework
 {
     public class BlankQueryContext : IQueryContext
     {
@@ -9,6 +9,11 @@ namespace RuntimeGraphFramework.Editor
 
         public GameObject gameObject => null;
         public Hash128 QueryID { get; private set; }
+
+        public BlankQueryContext()
+        {
+            RefreshQueryID();
+        }
 
         public void RefreshQueryID()
         {
@@ -29,7 +34,7 @@ namespace RuntimeGraphFramework.Editor
         public bool TryGetVariable<T>(string variableName, out T value)
         {
             value = default;
-            return true;
+            return false;
         }
         
         public bool TrySetVariable<T>(string variableName, T value)
