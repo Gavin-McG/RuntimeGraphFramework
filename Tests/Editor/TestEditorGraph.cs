@@ -5,7 +5,7 @@ using UnityEditor;
 
 namespace RuntimeGraphFramework.Tests.Editor
 {
-    [Graph(AssetExtension)]
+    [Graph(AssetExtension, GraphOptions.SupportsSubgraphs)]
     [Serializable]
     public class TestEditorGraph : EditorGraph<TestGraph>
     {

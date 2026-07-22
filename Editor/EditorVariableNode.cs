@@ -11,9 +11,9 @@ namespace RuntimeGraphFramework.Editor
         private IVariableNode _variableNode;
         private EditorNodeModel<RuntimeVariableNode> _nodeModel;
 
-        public EditorVariableNode(IVariableNode constantNode)
+        public EditorVariableNode(IVariableNode variableNode)
         {
-            _variableNode = constantNode;
+            _variableNode = variableNode;
         }
 
         private EditorNodeModel<RuntimeVariableNode> NodeModel

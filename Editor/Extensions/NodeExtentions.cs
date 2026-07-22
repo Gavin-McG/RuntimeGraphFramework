@@ -123,7 +123,8 @@ namespace RuntimeGraphFramework.Editor
             // ISubgraphNode
             if (node is ISubgraphNode subgraphNode)
             {
-                throw new NotImplementedException();
+                var editorSubgraphNode = context.GetSubgraphNode(subgraphNode);
+                return editorSubgraphNode.GetRuntimeNode(context);
             }
 
             throw new ArgumentException($"Node cannot be converted to RuntimeNode: {node.GetType()}");
