@@ -109,6 +109,12 @@ namespace RuntimeGraphFramework
        
         public static bool TryCastValue<TInput, TOutput, TGraph>(TInput input, out TOutput output)
         {
+            if (input == null)
+            {
+                output = default;
+                return false;
+            }
+            
             // Cast using builtin cast
             if (typeof(TOutput).IsAssignableFrom(input.GetType()))
             {

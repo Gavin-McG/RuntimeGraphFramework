@@ -37,6 +37,7 @@ MonoBehaviour:
         - rid: 8804234256927424592
         - rid: 8804234256927424597
         - rid: 8804234306219933775
+        - rid: 8804234306219933778
         m_GraphWireModels:
         - rid: 8804234256927424579
         - rid: 8804234256927424583
@@ -45,6 +46,7 @@ MonoBehaviour:
         - rid: 8804234256927424599
         - rid: 8804234306219933774
         - rid: 8804234306219933776
+        - rid: 8804234306219933779
         m_GraphStickyNoteModels: []
         m_GraphPlacematModels: []
         m_GraphVariableModels:
@@ -55,9 +57,9 @@ MonoBehaviour:
         m_LocalSubgraphs: []
         m_LastKnownBounds:
           serializedVersion: 2
-          x: -236
+          x: -245
           y: 153
-          width: 1309
+          width: 1318
           height: 323
         m_GraphElementMetaData:
         - m_Guid:
@@ -180,6 +182,22 @@ MonoBehaviour:
             Hash: bbcf111e637c2f99e962c4563377c674
           m_Category: 2
           m_Index: 6
+        - m_Guid:
+            m_Value0: 12709669307129776821
+            m_Value1: 7645655053855759844
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: b5ca2768e5d061b0e41d3e58c3d21a6a
+          m_Category: 0
+          m_Index: 7
+        - m_Guid:
+            m_Value0: 351172665437454833
+            m_Value1: 5411125399184637622
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: f1013abaad9ddf04b67e7e95e12d184b
+          m_Category: 2
+          m_Index: 7
         m_EntryPoint:
           rid: 8804234256927424575
         m_Graph:
@@ -747,3 +765,72 @@ MonoBehaviour:
       type: {class: 'Constant`1[[System.Single, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: UnityEditor.GraphToolkitModule}
       data:
         m_Value: 4
+    - rid: 8804234306219933778
+      type: {class: VariableNodeModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: UnityEditor.GraphToolkitModule}
+      data:
+        m_Guid:
+          m_Value0: 12709669307129776821
+          m_Value1: 7645655053855759844
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: b5ca2768e5d061b0e41d3e58c3d21a6a
+        m_Version: 2
+        m_Position: {x: -234.21469, y: 240.29823}
+        m_Title: New Variable
+        m_Tooltip: 
+        m_NodePreviewModel:
+          rid: -2
+        m_State: 0
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_InputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_OutputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_Collapsed: 0
+        m_CurrentModeIndex: 0
+        m_ElementColor:
+          m_Color: {r: 0, g: 0, b: 0, a: 0}
+          m_HasUserColor: 0
+        m_DeclarationModel:
+          rid: 8804234256927424600
+        m_DeclarationModelHashGuid:
+          serializedVersion: 2
+          Hash: 326d10635ff43d00c8237e9b0128ba05
+    - rid: 8804234306219933779
+      type: {class: WireModel, ns: Unity.GraphToolkit.Editor, asm: UnityEditor.GraphToolkitModule}
+      data:
+        m_Guid:
+          m_Value0: 351172665437454833
+          m_Value1: 5411125399184637622
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: f1013abaad9ddf04b67e7e95e12d184b
+        m_Version: 2
+        m_FromPortReference:
+          m_NodeModelGuid:
+            m_Value0: 12709669307129776821
+            m_Value1: 7645655053855759844
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: b5ca2768e5d061b0e41d3e58c3d21a6a
+          m_UniqueId: MainPortName
+          m_PortDirection: 2
+          m_PortOrientation: 0
+          m_Title: MainPortName
+        m_ToPortReference:
+          m_NodeModelGuid:
+            m_Value0: 10572994254109292982
+            m_Value1: 9171965721786506284
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: b6396e8841d2ba922cdc24933a5e497f
+          m_UniqueId: Input 1
+          m_PortDirection: 1
+          m_PortOrientation: 0
+          m_Title: Input 1

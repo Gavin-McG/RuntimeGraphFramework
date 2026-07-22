@@ -40,23 +40,7 @@ namespace RuntimeGraphFramework.Editor
             
             return runtimePort;
         }
-
-        private static ConstantRuntimePort CreateConstantPort(this IPort port, GraphImportContext context, RuntimeNode node, object value)
-        {
-            var portType = typeof(ConstantRuntimePort<,>).MakeGenericType(value.GetType(), context.GraphType);
-            var constructorArguments = new object[]
-            {
-                port.Name, 
-                port.GetIndex(), 
-                port.ID, 
-                RuntimePortDirection.Input, 
-                node, 
-                value
-            };
-            
-            return Activator.CreateInstance(portType, constructorArguments) as ConstantRuntimePort;
-        }
-
+        
         private static VariableRuntimePort CreateVariablePort(this IPort port, GraphImportContext context, RuntimeNode node, IVariable variable)
         {
             var portType = typeof(VariableRuntimePort<,>).MakeGenericType(variable.GetType(), context.GraphType);
@@ -73,7 +57,7 @@ namespace RuntimeGraphFramework.Editor
             return Activator.CreateInstance(portType, constructorArguments) as VariableRuntimePort;
         }
 
-        private static InputRuntimePort CreateInputPort(this IPort port, GraphImportContext context, RuntimeNode node)
+        private static InputRuntimePort CreateInputPort(this IPort port, GraphImportContext context, RuntimeNode node, object value)
         {
             var portType = typeof(InputRuntimePort<,>).MakeGenericType(port.DataType, context.GraphType);
             var constructorArguments = new object[]
@@ -82,7 +66,8 @@ namespace RuntimeGraphFramework.Editor
                 port.GetIndex(),
                 port.ID,
                 RuntimePortDirection.Input,
-                node
+                node,
+                value,
             };
             
             return Activator.CreateInstance(portType, constructorArguments) as InputRuntimePort;
@@ -121,11 +106,8 @@ namespace RuntimeGraphFramework.Editor
                 // Input Ports
                 case PortDirection.Input:
                 {
-                    // Unconnected Constant port
-                    if (port.IsConnected) return CreateInputPort(port, context, runtimeNode);
-                    
                     port.TryGetValue(out object value);
-                    return CreateConstantPort(port, context, runtimeNode, value);
+                    return CreateInputPort(port, context, runtimeNode, value);
                 }
                 
                 // Output Ports
@@ -135,7 +117,7 @@ namespace RuntimeGraphFramework.Editor
                     return CreateOutputPort(port, context, runtimeNode);
                 }
                 
-                default: throw new NotImplementedException();
+                default: throw new NotSupportedException("Unknown port Direction");
             }
         }
 
@@ -162,7 +144,7 @@ namespace RuntimeGraphFramework.Editor
                     return runtimePort.GetPortReference();
                 }
                 
-                default: throw new NotImplementedException();
+                default: throw new NotSupportedException("Unknown port Direction");
             }
         }
     }

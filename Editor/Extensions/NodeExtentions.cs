@@ -116,7 +116,8 @@ namespace RuntimeGraphFramework.Editor
             // IVariableNode
             if (node is IVariableNode variableNode)
             {
-                throw new NotImplementedException();
+                var editorVariableNode = context.GetVariableNode(variableNode);
+                return editorVariableNode.GetRuntimeNode(context);
             }
 
             // ISubgraphNode

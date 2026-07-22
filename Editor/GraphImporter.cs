@@ -121,6 +121,7 @@ namespace RuntimeGraphFramework.Editor
                 .Select(node => node.GetRuntimeNode(importContext))
                 .ToList();
             runtimeNodes.AddRange(importContext.ConstantNodes.Select(node => node.GetRuntimeNode(importContext)));
+            runtimeNodes.AddRange(importContext.VariableNodes.Select(node => node.GetRuntimeNode(importContext)));
 
             // Remove all Nodes that can be pre-computed
             if (!DebugMode)
