@@ -20,7 +20,10 @@ namespace RuntimeGraphFramework.Tests.Editor
         
         protected override void DefineRuntimeGraph(GraphImportContext ctx, TestGraph runtimeGraph)
         {
-            runtimeGraph.startNodes = this.GetNodes<StartEditorNode>(false).Select(node => node.GetRuntimeNode(ctx)).ToList();
+            runtimeGraph.startNodes = GetNodes()
+                .OfType<StartEditorNode>()
+                .Select(node => node.GetRuntimeNode(ctx))
+                .ToList();
         }
 
     }

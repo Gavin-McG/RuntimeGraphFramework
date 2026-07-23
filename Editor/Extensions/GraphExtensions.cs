@@ -7,47 +7,12 @@ namespace RuntimeGraphFramework.Editor
 {
     public static class GraphExtensions
     {
-        public static IEnumerable<T> GetNodes<T>(this Graph graph, bool includeSubgraph = true) where T : class
-        {
-            IEnumerable<T> GetNodesHelper(INode node)
-            {
-                // Check Node
-                if (node is T tNode)
-                {
-                    yield return tNode;
-                }
-                
-                // Check BlockNodes
-                if (node is ContextNode contextNode)
-                {
-                    var blockNodes = contextNode.BlockNodes;
-                    foreach (var blockNode in blockNodes)
-                    {
-                        if (blockNode is T tBlockNode) yield return tBlockNode;
-                    }
-                }
-                
-                // Check SubGraph
-                if (includeSubgraph && node is ISubgraphNode subgraphNode)
-                {
-                    var subgraph = subgraphNode.GetSubgraph();
-                    var subNodes = subgraph.GetNodes<T>();
-                    foreach (var subNode in subNodes)
-                    {
-                        yield return subNode;
-                    }
-                }
-            }
-            
-            return graph.GetNodes().SelectMany(GetNodesHelper).Distinct();
-        }
-
         public static List<Graph> GetAllSubgraphs(this Graph graph)
         {
             List<Graph> subgraphs = new List<Graph>();
             void GetAllSubgraphsHelper(Graph graph, HashSet<Hash128> graphIDs)
             {
-                var subgraphNodes = graph.GetNodes<ISubgraphNode>();
+                var subgraphNodes = graph.GetNodes().OfType<ISubgraphNode>();
                 foreach (var subgraphNode in subgraphNodes)
                 {
                     var subgraph = subgraphNode.GetSubgraph();

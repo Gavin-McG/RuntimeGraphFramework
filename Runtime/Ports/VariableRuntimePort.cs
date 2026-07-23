@@ -41,7 +41,7 @@ namespace RuntimeGraphFramework
 
         public override bool TrySetValue<T>(IQueryContext context, T value)
         {
-            return context.TrySetVariable(_variableName, value);
+            return false;
         }
     }
 }

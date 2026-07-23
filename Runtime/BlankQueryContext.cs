@@ -36,7 +36,24 @@ namespace RuntimeGraphFramework
             value = default;
             return false;
         }
-        
+
+        public bool TryGetInput<T>(string inputName, out T value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public RuntimeGraph MainGraph { get; }
+        public RuntimeGraph CurrentGraph { get; }
+        public void EnterGraph(RuntimeSubgraphNode subgraphNode)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ExitGraph()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool TrySetVariable<T>(string variableName, T value)
         {
             return false;

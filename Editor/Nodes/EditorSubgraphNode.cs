@@ -51,7 +51,8 @@ namespace RuntimeGraphFramework.Editor
             else if (node.subgraphType == SubgraphType.Asset)
             {
                 var assetGraph = AssetDatabase.LoadAssetByGUID<RuntimeGraph>(subgraph.AssetGuid);
-                if (assetGraph == null) throw new Exception($"Could not reference Graph {subgraph.AssetGuid}");
+                if (assetGraph == null || !assetGraph.IsValid) 
+                    throw new Exception($"Could not reference Graph {subgraph.AssetGuid}");
                 node.subgraph = assetGraph;
             }
             else throw new NotSupportedException();

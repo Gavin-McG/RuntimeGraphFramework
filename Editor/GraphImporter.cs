@@ -83,18 +83,22 @@ namespace RuntimeGraphFramework.Editor
                     if (asset is RuntimeGraph graph) ctx.AddObjectToAsset(graph.graphID.ToString(), asset);
                     else if (asset is RuntimeNode node) ctx.AddObjectToAsset(node.ID.ToString(), node); 
                     else ctx.AddObjectToAsset(asset.GetHashCode().ToString(), asset);
+
+                    if (!DeveloperMode) asset.hideFlags = HideFlags.HideInHierarchy;
                 }
-            
+
+                runtimeGraph.hideFlags = HideFlags.None;
                 ctx.SetMainObject(runtimeGraph);
             }
             catch (Exception e)
             {
-                var error = ScriptableObject.CreateInstance<GraphImportError>();
-                error.message = e.Message;
-                Debug.LogError(e);
+                var runtimeGraph = ScriptableObject.CreateInstance<TRuntimeGraph>();
+                runtimeGraph.valid = false;
+                runtimeGraph.importMessage = e.Message;
+                Debug.LogError($"Import Error: {e}");
                 
-                ctx.AddObjectToAsset("Error", error);
-                ctx.SetMainObject(error);
+                ctx.AddObjectToAsset(editorGraph.ID.ToString(), runtimeGraph);
+                ctx.SetMainObject(runtimeGraph);
             }
             
             // Set dependancies

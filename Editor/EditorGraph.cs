@@ -23,7 +23,7 @@ namespace RuntimeGraphFramework.Editor
         
         private void ClearNodeData()
         {
-            var editorNodes = this.GetNodes<IEditorNode<RuntimeNode>>().ToList();
+            var editorNodes = GetNodes().OfType<IEditorNode<RuntimeNode>>();
             foreach (var editorNode in editorNodes)
             {
                 editorNode.ClearData();
@@ -33,21 +33,26 @@ namespace RuntimeGraphFramework.Editor
 
         public override RuntimeGraph CreateGraph(GraphImportContext context)
         {
+            ClearNodeData();
+
             var runtimeGraph = ScriptableObject.CreateInstance<TGraph>();
             context.EnterGraph(runtimeGraph);
             context.AddAsset(runtimeGraph);
             
             runtimeGraph.graphID = ID;
             
-            // Add all variables to Graph
+            // Initialize Output variables
             runtimeGraph.variables = GetRuntimeVariables(context).ToList();
+            GetVariables(VariableKind.Output)
+                .SelectMany(variable => variable.GetNodes())
+                .ToList()
+                .ForEach(variableNode => variableNode.GetRuntimeNode(context));
 
-            // Define graph
-            ClearNodeData();
+            // Define Graph
             DefineRuntimeGraph(context, runtimeGraph);
             
             // Add all Nodes to graph
-            var editorNode = this.GetNodes<IEditorNode<RuntimeNode>>();
+            var editorNode = GetNodes().OfType<IEditorNode<RuntimeNode>>();
             runtimeGraph.nodes = editorNode
                 .Where(node => node.IsCreated)
                 .Select(node => node.GetRuntimeNode(context))
@@ -89,6 +94,14 @@ namespace RuntimeGraphFramework.Editor
 
             // Allow by Default
             return true;
+        }
+
+        public IEnumerable<IVariable> GetVariables(VariableKind variableKind)
+        {
+            return GetVariables(SortMethod.Display)
+                .GroupBy(variable => variable.Name)
+                .Select(group => group.First())
+                .Where(variable => variable.VariableKind == variableKind);
         }
 
         public IEnumerable<RuntimeVariable> GetRuntimeVariables(GraphImportContext context)
