@@ -1,4 +1,6 @@
-﻿using Unity.GraphToolkit.Editor;
+﻿using System;
+using System.Linq;
+using Unity.GraphToolkit.Editor;
 using UnityEditor.AssetImporters;
 using UnityEngine;
 
@@ -69,23 +71,37 @@ namespace RuntimeGraphFramework.Editor
                 assetContext = ctx
             };
 
-            var runtimeGraph = editorGraph.CreateGraph(importContext);
-            
-            // Remove all Nodes that can be pre-computed
-            if (!DebugMode)
+            try
             {
-                //RemoveConstantNodes(runtimeNodes, importContext);
+                var runtimeGraph = editorGraph.CreateGraph(importContext);
+                
+                // TODO optimizations
+            
+                // Add assets to Graph
+                foreach (var asset in importContext.Assets)
+                {
+                    if (asset is RuntimeGraph graph) ctx.AddObjectToAsset(graph.graphID.ToString(), asset);
+                    else if (asset is RuntimeNode node) ctx.AddObjectToAsset(node.ID.ToString(), node); 
+                    else ctx.AddObjectToAsset(asset.GetHashCode().ToString(), asset);
+                }
+            
+                ctx.SetMainObject(runtimeGraph);
+            }
+            catch (Exception e)
+            {
+                var error = ScriptableObject.CreateInstance<GraphImportError>();
+                error.message = e.Message;
+                Debug.LogError(e);
+                
+                ctx.AddObjectToAsset("Error", error);
+                ctx.SetMainObject(error);
             }
             
-            // Add assets to Graph
-            foreach (var asset in importContext.Assets)
-            {
-                if (asset is RuntimeGraph graph) ctx.AddObjectToAsset(graph.graphID.ToString(), asset);
-                else if (asset is RuntimeNode node) ctx.AddObjectToAsset(node.ID.ToString(), node); 
-                else ctx.AddObjectToAsset(asset.GetHashCode().ToString(), asset);
-            }
-            
-            ctx.SetMainObject(runtimeGraph);
+            // Set dependancies
+            editorGraph.GetAllSubgraphs()
+                .Where(subgraph => subgraph.AssetGuid != default)
+                .ToList()
+                .ForEach(subgraph => ctx.DependsOnArtifact(subgraph.AssetGuid));
         }
     }
 }

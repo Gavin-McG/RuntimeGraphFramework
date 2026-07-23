@@ -67,7 +67,7 @@ MonoBehaviour:
           x: -236
           y: -2
           width: 1309
-          height: 475
+          height: 486
         m_GraphElementMetaData:
         - m_Guid:
             m_Value0: 18188788158426494526
@@ -1441,7 +1441,7 @@ MonoBehaviour:
           serializedVersion: 2
           Hash: d04970987f6970090ca0333998383b8b
         m_Version: 2
-        m_Position: {x: 5.9552536, y: 377.8354}
+        m_Position: {x: 5.955246, y: 398.65292}
         m_Title: 
         m_Tooltip: MySecondGraph
         m_NodePreviewModel:
