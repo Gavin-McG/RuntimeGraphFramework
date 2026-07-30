@@ -47,7 +47,7 @@ namespace RuntimeGraphFramework
         public override bool TrySetNodeOutput<T>(IQueryContext context, T value)
         {
             // Check if types can assign 
-            if (typeof(TOutput).IsAssignableFrom(typeof(T)))
+            if (typeof(TOutput).IsAssignableFrom(value.GetType()))
             {
                 _value = (TOutput)(object)value;
                 return true;

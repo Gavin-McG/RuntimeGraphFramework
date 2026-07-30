@@ -23,7 +23,7 @@ namespace RuntimeGraphFramework
         IEnumerable<IRuntimeNode> GetNodes();
         
         bool TryGetDefaultValue<T>(out T defaultValue);
-        // bool TrySetDefaultValue<T>(ref T defaultValue);
+        internal bool TrySetDefaultValue<T>(T defaultValue);
         
         // void RemoveFromGraph(bool forceRemove);
     }

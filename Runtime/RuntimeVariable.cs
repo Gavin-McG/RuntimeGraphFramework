@@ -59,7 +59,7 @@ namespace RuntimeGraphFramework
         }
 
         // Internal methods
-        internal bool TrySetDefaultValue<T>(ref T defaultValue)
+        bool IRuntimeVariable.TrySetDefaultValue<T>(T defaultValue)
         {
             SetValueWrapper(defaultValue);
             return true;

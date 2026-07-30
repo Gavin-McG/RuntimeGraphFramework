@@ -8,6 +8,7 @@ namespace RuntimeGraphFramework
         
         public bool TryGetVariable<T>(string variableName, out T value);
         public bool TryGetInput<T>(string inputName, out T value);
+        public bool TrySetInput<T>(string inputName, T value);
         
         public RuntimeGraph MainGraph { get; }
         public RuntimeGraph CurrentGraph { get; }

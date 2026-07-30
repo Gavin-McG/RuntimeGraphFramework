@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("RuntimeGraphFramework.Editor")]
@@ -8,13 +9,14 @@ namespace RuntimeGraphFramework
 {
     public class RuntimeGraph : ScriptableObject, IRuntimeGraph
     {
-        [SerializeField] public Hash128 graphID;
+        [SerializeField] internal Hash128 graphID;
         
-        [SerializeField] public List<RuntimeNode> nodes = new();
-        [SerializeField] public List<RuntimeVariable> variables = new();
+        [SerializeField] internal List<RuntimeNode> nodes = new();
+        [SerializeField] internal List<RuntimeVariable> variables = new();
+        [SerializeField] internal Dictionary<string, int> variableNames = new();
         
-        [SerializeField] public bool valid = true;
-        [SerializeField] public string importMessage;
+        [SerializeField] internal bool valid = true;
+        [SerializeField] internal string importMessage;
         
         public string Name => name;
         public Hash128 ID => graphID;
@@ -73,7 +75,7 @@ namespace RuntimeGraphFramework
         /// <summary>
         /// Returns the node as a specific index within the graph
         /// </summary>
-        public IRuntimeNode GetNode(int index) => nodes[index];
+        public IRuntimeNode GetNode(int index) => nodes.ElementAtOrDefault(index);
         
         #endregion
         
@@ -115,7 +117,17 @@ namespace RuntimeGraphFramework
         }
         
         public IEnumerable<IRuntimeVariable> GetVariables() => variables;
-        public IRuntimeVariable GetVariable(int index) => variables[index];
+
+        public IRuntimeVariable GetVariable(int index)
+        {
+            return variables.ElementAtOrDefault(index);
+        }
+
+        public IRuntimeVariable GetVariable(string name)
+        {
+            if (!variableNames.TryGetValue(name, out int index)) return null;
+            return GetVariable(index);
+        }
         
         #endregion
         
@@ -154,5 +166,24 @@ namespace RuntimeGraphFramework
         }
         
         #endregion
+
+        public bool TryGetGraphOutput<T>(IQueryContext context, string outputName, out T value) 
+        {
+            value = default;
+
+            // Get index of Variable
+            if (!variableNames.TryGetValue(outputName, out var i)) return false;
+
+            // Get variable and check for variable kind
+            var variable = GetVariable(i);
+            if (variable?.VariableKind != RuntimeVariableKind.Output) return false;
+
+            // get the input port of the variable's node
+            var variableNode = variable.GetNodes().FirstOrDefault();
+            var inputPort = variableNode?.GetInputPort(0);
+
+            // Query the node's input
+            return inputPort != null && inputPort.TryGetNodeInput(context, out value);
+        }
     }
 }

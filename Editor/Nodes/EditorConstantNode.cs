@@ -29,8 +29,9 @@ namespace RuntimeGraphFramework.Editor
         public IEnumerable<IPort> GetInputPorts() => _constantNode.GetInputPorts();
         public IEnumerable<IPort> GetOutputPorts() => _constantNode.GetOutputPorts();
 
-        public void InitializeRuntimeNode(GraphImportContext context, RuntimeConstantNode node)
+        void IEditorNode<RuntimeConstantNode>.InitializeRuntimeNode(GraphImportContext context)
         {
+            var node = NodeModel.RuntimeNode;
             node.name = "ConstantNode";
             
             node._outputPort = _constantNode.GetOutputPort(0).GetRuntimePortReference(context);
@@ -45,7 +46,6 @@ namespace RuntimeGraphFramework.Editor
         public void ClearData() => NodeModel.ClearData();
         void IEditorNode<RuntimeConstantNode>.CreateRuntimeNode(GraphImportContext context) => NodeModel.CreateRuntimeNode(context);
         void IEditorNode<RuntimeConstantNode>.ConnectRuntimeNode(GraphImportContext context) => NodeModel.ConnectRuntimeNode(context);
-        void IEditorNode<RuntimeConstantNode>.InitializeRuntimeNode(GraphImportContext context) {}
         public bool TryGetInputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetInputPortIndex(port, out portIndex);
         public bool TryGetOutputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetOutputPortIndex(port, out portIndex);
     }

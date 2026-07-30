@@ -144,7 +144,7 @@ namespace RuntimeGraphFramework
                 return true;
             }
             
-            Debug.LogError($"No Port cast Registered from {typeof(TInput).Name} to {typeof(TOutput).Name} for Graph type {typeof(TGraph).Name}.");
+            Debug.LogWarning($"No Port cast Registered from {typeof(TInput).Name} to {typeof(TOutput).Name} for Graph type {typeof(TGraph).Name}.");
             output = default;
             return false;
         }

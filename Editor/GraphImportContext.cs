@@ -80,7 +80,7 @@ namespace RuntimeGraphFramework.Editor
         
         // Public Methods
         public RuntimeGraph Graph => graphStack.Peek().Graph;
-        public Type GraphType => graphStack.Peek().GetType();
+        public Type GraphType => graphStack.Peek().Graph.GetType();
         
         public void AddAsset(UnityEngine.Object asset)
         {

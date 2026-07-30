@@ -54,7 +54,7 @@ namespace RuntimeGraphFramework
         internal override bool TrySetValue<T>(T value)
         {
             // Check if types can assign 
-            if (typeof(TInput).IsAssignableFrom(typeof(T)))
+            if (typeof(TInput).IsAssignableFrom(value.GetType()))
             {
                 _value = (TInput)(object)value;
                 return true;

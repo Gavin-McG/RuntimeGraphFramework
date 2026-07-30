@@ -54,24 +54,35 @@ namespace RuntimeGraphFramework.Editor
             context.AddAsset(runtimeGraph);
             runtimeGraph.graphID = ID;
             
-            // Initialize Nodes
+            // Create & Connect Nodes
             ClearAllNodeData(context);
             var editorNodes = GetAllEditorNodes(context);
             foreach (var editorNode in editorNodes) editorNode.CreateRuntimeNode(context);
             foreach (var editorNode in editorNodes) editorNode.ConnectRuntimeNode(context);
-            foreach (var editorNode in editorNodes) editorNode.InitializeRuntimeNode(context);
+            runtimeGraph.nodes = editorNodes.Select(editorNode => editorNode.RuntimeNode).ToList();
             
             // Initialize Variables
-            runtimeGraph.variables = GetRuntimeVariables(context).ToList();
+            var runtimeVariables = GetRuntimeVariables(context).ToList();
+            runtimeGraph.variables.Capacity = runtimeVariables.Count;
+            runtimeGraph.variableNames.EnsureCapacity(runtimeVariables.Count);
+            for (var i = 0; i < runtimeVariables.Count; i++)
+            {
+                var runtimeVariable = runtimeVariables[i];
+                runtimeGraph.variableNames[runtimeVariable.Name] = i;
+                runtimeGraph.variables.Add(runtimeVariable);
+            }
             
-            // Define Graph
+            // Initialize Graph-specific data
             DefineRuntimeGraph(context, runtimeGraph);
+            
+            // Initialize Node-specific data
+            foreach (var editorNode in editorNodes) editorNode.InitializeRuntimeNode(context);
             
             context.ExitGraph();
             return runtimeGraph;
         }
         
-        protected virtual void DefineRuntimeGraph(GraphImportContext ctx, TGraph runtimeGraph) {}
+        protected virtual void DefineRuntimeGraph(GraphImportContext context, TGraph runtimeGraph) {}
         
         public override bool IsConnectionAllowed(IPort output, IPort input)
         {

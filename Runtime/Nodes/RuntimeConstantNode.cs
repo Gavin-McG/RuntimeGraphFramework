@@ -10,7 +10,7 @@ namespace RuntimeGraphFramework
         protected override bool TryUpdateOutputs(IQueryContext context)
         {
             if (!_valueWrapper.TryGetValue(out object value)) return false;
-            return _outputPort.TrySetValue(value);
+            return _outputPort.TrySetNodeOutput(context, value);
         }
     }
 }

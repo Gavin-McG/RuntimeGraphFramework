@@ -32,5 +32,8 @@ namespace RuntimeGraphFramework
         // Connection methods
         // bool Connect(IRuntimePort output, IRuntimePort input);
         // bool Disconnect(IRuntimePort output, IRuntimePort input);
+        
+        //Query methods
+        bool TryGetGraphOutput<T>(IQueryContext context, string outputName, out T value);
     }
 }

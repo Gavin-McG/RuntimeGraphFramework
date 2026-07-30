@@ -29,8 +29,9 @@ namespace RuntimeGraphFramework.Editor
         public IEnumerable<IPort> GetInputPorts() => _node.GetInputPorts();
         public IEnumerable<IPort> GetOutputPorts() => _node.GetOutputPorts();
 
-        public void InitializeRuntimeNode(GraphImportContext context, RuntimeMissingNode node)
+        void IEditorNode<RuntimeMissingNode>.InitializeRuntimeNode(GraphImportContext context)
         {
+            var node = NodeModel.RuntimeNode;
             node.name = "MissingNode";
         }
         
@@ -39,7 +40,6 @@ namespace RuntimeGraphFramework.Editor
         public void ClearData() => NodeModel.ClearData();
         void IEditorNode<RuntimeMissingNode>.CreateRuntimeNode(GraphImportContext context) => NodeModel.CreateRuntimeNode(context);
         void IEditorNode<RuntimeMissingNode>.ConnectRuntimeNode(GraphImportContext context) => NodeModel.ConnectRuntimeNode(context);
-        void IEditorNode<RuntimeMissingNode>.InitializeRuntimeNode(GraphImportContext context) {}
         public bool TryGetInputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetInputPortIndex(port, out portIndex);
         public bool TryGetOutputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetOutputPortIndex(port, out portIndex);
     }

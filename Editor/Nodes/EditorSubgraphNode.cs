@@ -30,8 +30,9 @@ namespace RuntimeGraphFramework.Editor
         public IEnumerable<IPort> GetInputPorts() => _subgraphNode.GetInputPorts();
         public IEnumerable<IPort> GetOutputPorts() => _subgraphNode.GetOutputPorts();
 
-        public void InitializeRuntimeNode(GraphImportContext context, RuntimeSubgraphNode node)
+        void IEditorNode<RuntimeSubgraphNode>.InitializeRuntimeNode(GraphImportContext context)
         {
+            var node = NodeModel.RuntimeNode;
             node.name = "SubgraphNode";
             
             Graph subgraph = _subgraphNode.GetSubgraph();
@@ -63,7 +64,6 @@ namespace RuntimeGraphFramework.Editor
         public void ClearData() => NodeModel.ClearData();
         void IEditorNode<RuntimeSubgraphNode>.CreateRuntimeNode(GraphImportContext context) => NodeModel.CreateRuntimeNode(context);
         void IEditorNode<RuntimeSubgraphNode>.ConnectRuntimeNode(GraphImportContext context) => NodeModel.ConnectRuntimeNode(context);
-        void IEditorNode<RuntimeSubgraphNode>.InitializeRuntimeNode(GraphImportContext context) {}
         public bool TryGetInputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetInputPortIndex(port, out portIndex);
         public bool TryGetOutputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetOutputPortIndex(port, out portIndex);
     }
