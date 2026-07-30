@@ -30,8 +30,8 @@ namespace RuntimeGraphFramework.Tests
             var graph = LoadGraph("ConstantNodeFail_Test");
             
             var context = new QueryContext(graph);
-            Assert.IsFalse(graph.TryGetGraphOutput(context, "output", out string output));
-            Assert.AreEqual(default(string), output);
+            Assert.IsFalse(graph.TryGetGraphOutput(context, "output", out Vector2 output));
+            Assert.AreEqual(default(Vector2), output);
         }
 
         [Test]
@@ -55,12 +55,20 @@ namespace RuntimeGraphFramework.Tests
         {
             var graph = LoadGraph("VariableNodeFail_Test");
             
-            // Default value
             var context = new QueryContext(graph);
-            Assert.IsFalse(graph.TryGetGraphOutput(context, "output", out string output));
-            Assert.AreEqual(default(string), output);
-            
-            
+            Assert.IsFalse(graph.TryGetGraphOutput(context, "output", out Vector2 output));
+            Assert.AreEqual(default(Vector2), output);
         }
+
+        [Test]
+        public static void TypeCast_Test()
+        {
+            var graph = LoadGraph("TypeCast_Test");
+            
+            var context = new QueryContext(graph);
+            Assert.IsTrue(graph.TryGetGraphOutput(context, "output", out string output));
+            Assert.AreEqual("5", output);
+        }
+        
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using RuntimeGraphFramework.Editor;
 using Unity.GraphToolkit.Editor;
 using UnityEditor;
@@ -17,6 +16,12 @@ namespace RuntimeGraphFramework.Tests.Editor
         {
             GraphDatabase.PromptInProjectBrowserToCreateNewAsset<TestEditorGraph>();
         }
+
+        [InitializeOnLoadMethod]
+        public static void RegisterTypeCasts()
+        {
+            TestGraph.RegisterTypeCasts();
+        }
     }
     
     [Serializable, Node(null, null, "Math Node"), UseWithGraph(typeof(TestEditorGraph))]
@@ -30,4 +35,7 @@ namespace RuntimeGraphFramework.Tests.Editor
     
     [Serializable, Node(null, null, "Split Node"), UseWithGraph(typeof(TestEditorGraph))]
     public class SplitEditorNode : ExampleNodes.Editor.SplitEditorNode {}
+    
+    [Serializable, Node(null, null, "Concatenate Node"), UseWithGraph(typeof(TestEditorGraph))]
+    public class ConcatenateEditorNode : ExampleNodes.Editor.ConcatenateEditorNode {}
 }
