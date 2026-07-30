@@ -6,29 +6,31 @@ using UnityEngine;
 namespace RuntimeGraphFramework
 {
     [Serializable]
-    public class UntypedRuntimePort : RuntimePort
+    internal class UntypedRuntimePort : RuntimePort
     {
-        [SerializeField] private List<RuntimePortReference> _connections = new();
-        
         public UntypedRuntimePort(string name, int index, Hash128 id, RuntimePortDirection direction, RuntimeNode node)
             : base(name, index, id, direction, node) {}
 
         public override Type DataType => null;
-        public override bool IsConnected => _connections.Count != 0;
-        public override IRuntimePort FirstConnectedPort => _connections.FirstOrDefault().GetPort();
         
-        public override void Connect(RuntimePortReference portReference)
-        {
-            _connections.Add(portReference);
-        }
-        
-        public override bool TryGetValue<T>(IQueryContext context, out T value)
+        public override bool TryGetValue<T>(out T value)
         {
             value = default;
             return false;
         }
+        
+        public override bool TryGetNodeInput<T>(IQueryContext context, out T value)
+        {
+            value = default;
+            return false;
+        }
+        
+        internal override bool TrySetValue<T>(T value)
+        {
+            return false;
+        }
 
-        public override bool TrySetValue<T>(IQueryContext context, T value)
+        public override bool TrySetNodeOutput<T>(IQueryContext context, T value)
         {
             return false;
         }

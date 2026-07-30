@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 
 namespace RuntimeGraphFramework
@@ -9,14 +10,17 @@ namespace RuntimeGraphFramework
         [SerializeField] public RuntimeVariableKind variableKind;
         [SerializeField] public string variableName;
         
-        protected override void UpdateNodeOutputs(IQueryContext context)
+        public IRuntimeVariable Variable => Graph.variables
+            .First(variable => variable.Name == variableName);
+        
+        protected override bool TryUpdateOutputs(IQueryContext context)
         {
             if (variableKind == RuntimeVariableKind.Local)
             {
-                context.TryGetVariable(variableName, out object value);
-                outputPort.TrySetValue(context, value);
+                if (!context.TryGetVariable(variableName, out object value)) return false;
+                return outputPort.TrySetValue(value);
             }
-            else if (variableKind == RuntimeVariableKind.Input)
+            if (variableKind == RuntimeVariableKind.Input)
             {
                 throw new NotImplementedException();
             }

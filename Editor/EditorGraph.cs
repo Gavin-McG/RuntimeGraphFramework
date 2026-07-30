@@ -20,47 +20,52 @@ namespace RuntimeGraphFramework.Editor
         {
             return PortTypeCastManager.CanTypesCast<TGraph>(outputType, inputType);
         }
-        
-        private void ClearNodeData()
+
+        private List<INode> GetAllNodes()
         {
-            var editorNodes = GetNodes().OfType<IEditorNode<RuntimeNode>>();
-            foreach (var editorNode in editorNodes)
+            var nodes = GetNodes().ToList();
+            var contextNodes = nodes.OfType<ContextNode>();
+            foreach (var contextNode in contextNodes)
             {
-                editorNode.ClearData();
+                var blockNodes = contextNode.BlockNodes;
+                nodes.AddRange(blockNodes);
             }
+            return nodes;
         }
 
+        private List<IEditorNode<RuntimeNode>> GetAllEditorNodes(GraphImportContext context)
+        {
+            return GetAllNodes()
+                .Select(node => node.AsEditorNode(context))
+                .ToList();
+        }
+        
+        private void ClearAllNodeData(GraphImportContext context)
+        {
+            var editorNodes = GetAllEditorNodes(context);
+            foreach (var editorNode in editorNodes) editorNode.ClearData();
+        }
 
         public override RuntimeGraph CreateGraph(GraphImportContext context)
         {
-            ClearNodeData();
-
+            // Create Graph asset
             var runtimeGraph = ScriptableObject.CreateInstance<TGraph>();
             context.EnterGraph(runtimeGraph);
             context.AddAsset(runtimeGraph);
-            
             runtimeGraph.graphID = ID;
             
-            // Initialize Output variables
+            // Initialize Nodes
+            ClearAllNodeData(context);
+            var editorNodes = GetAllEditorNodes(context);
+            foreach (var editorNode in editorNodes) editorNode.CreateRuntimeNode(context);
+            foreach (var editorNode in editorNodes) editorNode.ConnectRuntimeNode(context);
+            foreach (var editorNode in editorNodes) editorNode.InitializeRuntimeNode(context);
+            
+            // Initialize Variables
             runtimeGraph.variables = GetRuntimeVariables(context).ToList();
-            GetVariables(VariableKind.Output)
-                .SelectMany(variable => variable.GetNodes())
-                .ToList()
-                .ForEach(variableNode => variableNode.GetRuntimeNode(context));
-
+            
             // Define Graph
             DefineRuntimeGraph(context, runtimeGraph);
-            
-            // Add all Nodes to graph
-            var editorNode = GetNodes().OfType<IEditorNode<RuntimeNode>>();
-            runtimeGraph.nodes = editorNode
-                .Where(node => node.IsCreated)
-                .Select(node => node.GetRuntimeNode(context))
-                .ToList();
-            runtimeGraph.nodes.AddRange(context.ConstantNodes.Select(node => node.GetRuntimeNode(context)));
-            runtimeGraph.nodes.AddRange(context.VariableNodes.Select(node => node.GetRuntimeNode(context)));
-            runtimeGraph.nodes.AddRange(context.SubgraphNodes.Select(node => node.GetRuntimeNode(context)));
-            runtimeGraph.nodes.AddRange(context.MissingNodes.Select(node => node.GetRuntimeNode(context)));
             
             context.ExitGraph();
             return runtimeGraph;
@@ -108,7 +113,18 @@ namespace RuntimeGraphFramework.Editor
         {
             return GetVariables(SortMethod.Display)
                 .GroupBy(variable => variable.Name)
-                .Select(group => group.First().CreateRuntimeVariable(context));
+                .Select(group =>
+                {
+                    var variable = group.First();
+                    var runtimeVariable = variable.CreateRuntimeVariable(context);
+                    // Add nodes of Variable
+                    variable.GetNodes()
+                        .ToList()
+                        .ForEach(node => 
+                            runtimeVariable.AddNode(node.AsEditorNode(context).RuntimeNode)
+                        );
+                    return runtimeVariable;
+                });
         }
     }
 }

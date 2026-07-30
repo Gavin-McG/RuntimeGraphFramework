@@ -7,10 +7,10 @@ namespace RuntimeGraphFramework
 {
     public abstract class RuntimeNode : ScriptableObject, IRuntimeNode
     {
-        [SerializeField] public RuntimeGraph graph;
-        [SerializeField] public Hash128 nodeID;
-        [SerializeReference] public List<RuntimePort> inputPorts = new();
-        [SerializeReference] public List<RuntimePort> outputPorts = new();
+        [SerializeField] internal RuntimeGraph graph;
+        [SerializeField] internal Hash128 nodeID;
+        [SerializeReference] internal List<RuntimePort> inputPorts = new();
+        [SerializeReference] internal List<RuntimePort> outputPorts = new();
         
         public RuntimeGraph Graph => graph;
         public Hash128 ID => nodeID;
@@ -19,18 +19,20 @@ namespace RuntimeGraphFramework
         
         public IRuntimePort GetOutputPort(int index) => outputPorts.ElementAtOrDefault(index);
         public IRuntimePort GetInputPort(int index) => inputPorts.ElementAtOrDefault(index);
-        
-        protected virtual void UpdateNodeOutputs(IQueryContext context) {}
+
+        protected virtual bool TryUpdateOutputs(IQueryContext context) => false;
         
         private Hash128 previousQueryID;
+        private bool previousReturn;
         
-        public void UpdateNode(IQueryContext context)
+        public bool TryUpdateNode(IQueryContext context)
         {
             var currentQueryID = context.QueryID;
-            if (previousQueryID == currentQueryID) return;
-            previousQueryID = currentQueryID;
+            if (previousQueryID == currentQueryID) return previousReturn;
             
-            UpdateNodeOutputs(context);
+            previousQueryID = currentQueryID;
+            previousReturn = TryUpdateOutputs(context);
+            return previousReturn;
         }
     }
 }

@@ -1,0 +1,20 @@
+{
+    "name": "RuntimeGraphFramework.ExampleNodes.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:511e81731d38058438dd4efb9007351c",
+        "GUID:76144823c03e89d41bce491d70bea0c2",
+        "GUID:d7d491e9e34ac6f4d8cfa080edbae3e0"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

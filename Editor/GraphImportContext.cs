@@ -76,44 +76,55 @@ namespace RuntimeGraphFramework.Editor
         
         public AssetImportContext assetContext;
         private readonly Stack<ImportStackEntry> graphStack = new();
-        
         private readonly List<UnityEngine.Object> assets = new List<UnityEngine.Object>();
         
+        // Public Methods
         public RuntimeGraph Graph => graphStack.Peek().Graph;
         public Type GraphType => graphStack.Peek().GetType();
         
-        public IEnumerable<EditorConstantNode> ConstantNodes => graphStack.Peek().ConstantNodes;
-        public IEnumerable<EditorVariableNode> VariableNodes => graphStack.Peek().VariableNodes;
-        public IEnumerable<EditorSubgraphNode> SubgraphNodes => graphStack.Peek().SubgraphNodes;
-        public IEnumerable<EditorMissingNode> MissingNodes => graphStack.Peek().MissingNodes;
-        
-        public IEnumerable<UnityEngine.Object> Assets => assets;
-
-        public void EnterGraph(RuntimeGraph graph)
-        {
-            graphStack.Push(new ImportStackEntry(graph));
-        }
-
-        public void ExitGraph()
-        {
-            graphStack.Pop();
-        }
-
-        public EditorConstantNode GetConstantNode(IConstantNode constantNode) => 
-            graphStack.Peek().GetConstantNode(constantNode);
-        
-        public EditorVariableNode GetVariableNode(IVariableNode variableNode) =>
-            graphStack.Peek().GetVariableNode(variableNode);
-
-        public EditorSubgraphNode GetSubgraphNode(ISubgraphNode subgraphNode) =>
-            graphStack.Peek().GetSubgraphNode(subgraphNode);
-
-        public EditorMissingNode GetMissingNode(INode node) =>
-            graphStack.Peek().GetMissingNode(node);
-
         public void AddAsset(UnityEngine.Object asset)
         {
             assets.Add(asset);
         }
+
+        // Internal Methods
+        internal IEnumerable<EditorConstantNode> ConstantNodes => graphStack.Peek().ConstantNodes;
+        internal IEnumerable<EditorVariableNode> VariableNodes => graphStack.Peek().VariableNodes;
+        internal IEnumerable<EditorSubgraphNode> SubgraphNodes => graphStack.Peek().SubgraphNodes;
+        internal IEnumerable<EditorMissingNode> MissingNodes => graphStack.Peek().MissingNodes;
+        
+        internal IEnumerable<UnityEngine.Object> Assets => assets;
+        
+        private bool HasEnteredGraph(RuntimeGraph graph)
+        {
+            foreach (var entry in graphStack)
+            {
+                if (entry.Graph == graph) return true;
+            }
+            return false;
+        }
+
+        internal void EnterGraph(RuntimeGraph graph)
+        {
+            if (HasEnteredGraph(graph)) throw new Exception("Graph recursion is not supported");
+            graphStack.Push(new ImportStackEntry(graph));
+        }
+
+        internal void ExitGraph()
+        {
+            graphStack.Pop();
+        }
+
+        internal EditorConstantNode GetConstantNode(IConstantNode constantNode) => 
+            graphStack.Peek().GetConstantNode(constantNode);
+        
+        internal EditorVariableNode GetVariableNode(IVariableNode variableNode) =>
+            graphStack.Peek().GetVariableNode(variableNode);
+
+        internal EditorSubgraphNode GetSubgraphNode(ISubgraphNode subgraphNode) =>
+            graphStack.Peek().GetSubgraphNode(subgraphNode);
+
+        internal EditorMissingNode GetMissingNode(INode node) =>
+            graphStack.Peek().GetMissingNode(node);
     }
 }

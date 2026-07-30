@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RuntimeGraphFramework
@@ -21,7 +22,12 @@ namespace RuntimeGraphFramework
         IRuntimeNode GetNode();
         RuntimePortReference GetPortReference();
         
-        bool TryGetValue<T>(IQueryContext context, out T value);
-        bool TrySetValue<T>(IQueryContext context, T value);
+        bool TryGetValue<T>(out T value);
+        // bool TrySetValue<T>(T value);
+        
+        bool TryGetNodeInput<T>(IQueryContext context, out T value);
+        bool TrySetNodeOutput<T>(IQueryContext context, T value);
+        
+        IEnumerable<IRuntimePort> GetConnectedPorts();
     }
 }

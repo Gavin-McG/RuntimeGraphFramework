@@ -11,7 +11,5 @@ namespace RuntimeGraphFramework.Editor
 
         IEnumerable<IPort> GetInputPorts();
         IEnumerable<IPort> GetOutputPorts();
-
-        void InitializeRuntimeNode(GraphImportContext context, TRuntimeNode node);
     }
 }

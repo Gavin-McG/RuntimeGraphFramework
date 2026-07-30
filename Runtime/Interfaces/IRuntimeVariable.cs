@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RuntimeGraphFramework
@@ -17,7 +18,13 @@ namespace RuntimeGraphFramework
         RuntimeGraph Graph { get; }
         Hash128 ID { get; }
         RuntimeVariableKind VariableKind { get; }
+        int NodeCount { get; }
+        
+        IEnumerable<IRuntimeNode> GetNodes();
         
         bool TryGetDefaultValue<T>(out T defaultValue);
+        // bool TrySetDefaultValue<T>(ref T defaultValue);
+        
+        // void RemoveFromGraph(bool forceRemove);
     }
 }

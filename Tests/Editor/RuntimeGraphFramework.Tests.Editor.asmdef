@@ -6,6 +6,8 @@
         "UnityEditor.TestRunner",
         "RuntimeGraphFramework",
         "RuntimeGraphFramework.Editor",
+        "RuntimeGraphFramework.ExampleNodes",
+        "RuntimeGraphFramework.ExampleNodes.Editor",
         "RuntimeGraphFramework.Tests"
     ],
     "includePlatforms": [

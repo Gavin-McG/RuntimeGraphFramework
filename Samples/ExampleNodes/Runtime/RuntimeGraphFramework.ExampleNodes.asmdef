@@ -1,0 +1,16 @@
+{
+    "name": "RuntimeGraphFramework.ExampleNodes",
+    "rootNamespace": "",
+    "references": [
+        "GUID:511e81731d38058438dd4efb9007351c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

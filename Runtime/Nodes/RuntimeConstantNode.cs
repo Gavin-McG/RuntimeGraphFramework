@@ -7,10 +7,10 @@ namespace RuntimeGraphFramework
         [SerializeField] public RuntimePortReference _outputPort;
         [SerializeReference] public ValueWrapper _valueWrapper;
         
-        protected override void UpdateNodeOutputs(IQueryContext context)
+        protected override bool TryUpdateOutputs(IQueryContext context)
         {
-            _valueWrapper.TryGetValue(out object value);
-            _outputPort.TrySetValue(context, value);
+            if (!_valueWrapper.TryGetValue(out object value)) return false;
+            return _outputPort.TrySetValue(value);
         }
     }
 }

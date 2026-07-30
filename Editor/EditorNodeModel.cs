@@ -24,7 +24,7 @@ namespace RuntimeGraphFramework.Editor
         private readonly Dictionary<IPort, int> _outputPortIndices = new();
         private readonly Dictionary<IPort, int> _inputPortIndices = new();
         
-        public bool IsCreated => _node != null;
+        public TRuntimeNode RuntimeNode => _node;
         
         public void ClearData()
         {
@@ -57,10 +57,10 @@ namespace RuntimeGraphFramework.Editor
             }
         }
         
-        public TRuntimeNode GetRuntimeNode(GraphImportContext context)
+        void IEditorNode<TRuntimeNode>.CreateRuntimeNode(GraphImportContext context)
         {
             // Check if already Initialized
-            if (_node != null) return _node;
+            if (_node != null) return;
             
             // Create instance
             _node = ScriptableObject.CreateInstance<TRuntimeNode>();
@@ -83,8 +83,13 @@ namespace RuntimeGraphFramework.Editor
                 var OutputPort = port.CreateRuntimePort(context);
                 _node.outputPorts.Add(OutputPort);
             }
+        }
+
+        void IEditorNode<TRuntimeNode>.ConnectRuntimeNode(GraphImportContext context)
+        {
+            if (_node == null) throw new Exception("Node must be created before being connected");
             
-            // Set port Connections
+            // Set input port Connections
             foreach (var port in _inputPorts)
             {
                 var index = _inputPortIndices[port];
@@ -93,10 +98,11 @@ namespace RuntimeGraphFramework.Editor
                 connectedPorts.ForEach(port =>
                 {
                     var portReference = port.GetRuntimePortReference(context);
-                    _node.inputPorts[index].Connect(portReference);
+                    _node.inputPorts[index].AddConnection(portReference);
                 });
             }
 
+            // Set output port Connections
             foreach (var port in _outputPorts)
             {
                 var index = _outputPortIndices[port];
@@ -105,13 +111,14 @@ namespace RuntimeGraphFramework.Editor
                 connectedPorts.ForEach(port =>
                 {
                     var portReference = port.GetRuntimePortReference(context);
-                    _node.outputPorts[index].Connect(portReference);
+                    _node.outputPorts[index].AddConnection(portReference);
                 });
             }
-            
-            // Initialize Node data
-            _owner.InitializeRuntimeNode(context, _node);
-            return _node;
+        }
+
+        void IEditorNode<TRuntimeNode>.InitializeRuntimeNode(GraphImportContext context)
+        {
+            throw new InvalidOperationException("Node Model cannot initialize Runtime Node");
         }
         
         public bool TryGetOutputPortIndex(IPort port, out int portIndex)

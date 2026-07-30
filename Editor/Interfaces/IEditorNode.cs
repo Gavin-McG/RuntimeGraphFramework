@@ -3,13 +3,15 @@ using Unity.GraphToolkit.Editor;
 
 namespace RuntimeGraphFramework.Editor
 {
-    public interface IEditorNode<out T> 
+    internal interface IEditorNode<out T> 
     {
-        bool IsCreated { get; }
+        T RuntimeNode { get; }
         
         void ClearData();
-        T GetRuntimeNode(GraphImportContext context);
         
+        internal void CreateRuntimeNode(GraphImportContext context);
+        internal void ConnectRuntimeNode(GraphImportContext context);
+        internal void InitializeRuntimeNode(GraphImportContext context);
         bool TryGetOutputPortIndex(IPort port, out int portIndex);
         bool TryGetInputPortIndex(IPort port, out int portIndex);
     }

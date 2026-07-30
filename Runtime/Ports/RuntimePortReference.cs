@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace RuntimeGraphFramework
@@ -17,11 +19,11 @@ namespace RuntimeGraphFramework
             this.index = index;
         }
         
-        public IRuntimePort GetPort()
+        internal RuntimePort GetPort()
         {
             if (node == null) return null;
-            if (direction == RuntimePortDirection.Input) return node.GetInputPort(index);
-            if (direction == RuntimePortDirection.Output) return node.GetOutputPort(index);
+            if (direction == RuntimePortDirection.Input) return node.inputPorts.ElementAtOrDefault(index);
+            if (direction == RuntimePortDirection.Output) return node.outputPorts.ElementAtOrDefault(index);
             return null;
         }
 
@@ -32,26 +34,53 @@ namespace RuntimeGraphFramework
         public RuntimePortDirection Direction => direction;
         public bool IsConnected => GetPort()?.IsConnected ?? false;
         public IRuntimePort FirstConnectedPort => GetPort()?.FirstConnectedPort;
+        public int Index => index;
         
         public IRuntimeNode GetNode() => node;
         
         public RuntimePortReference GetPortReference() => this;
 
-        public bool TryGetValue<T>(IQueryContext context, out T value)
+        public bool TryGetValue<T>(out T value)
         {
             var port = GetPort();
-            if (port != null) return port.TryGetValue(context, out value);
+            if (port != null) return port.TryGetValue(out value);
             
             value = default;
             return false;
         }
-
-        public bool TrySetValue<T>(IQueryContext context, T value)
+        
+        public bool TryGetNodeInput<T>(IQueryContext context, out T value)
         {
             var port = GetPort();
-            if (port != null) return port.TrySetValue(context, value);
+            if (port != null) return port.TryGetNodeInput(context, out value);
+            
+            value = default;
+            return false;
+        } 
+        
+        internal bool TrySetValue<T>(T value)
+        {
+            var port = GetPort();
+            if (port != null) return port.TrySetValue(value);
             
             return false;
+        }
+
+        public bool TrySetNodeOutput<T>(IQueryContext context, T value)
+        {
+            var port = GetPort();
+            if (port != null) return port.TrySetNodeOutput(context, value);
+            
+            return false;
+        }
+
+
+        public IEnumerable<IRuntimePort> GetConnectedPorts()
+        {
+            var port = GetPort();
+            if (port != null) return port.GetConnectedPorts();
+            
+            return new List<IRuntimePort>();
         }
     }
 }

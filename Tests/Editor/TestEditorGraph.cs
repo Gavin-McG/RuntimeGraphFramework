@@ -17,14 +17,17 @@ namespace RuntimeGraphFramework.Tests.Editor
         {
             GraphDatabase.PromptInProjectBrowserToCreateNewAsset<TestEditorGraph>();
         }
-        
-        protected override void DefineRuntimeGraph(GraphImportContext ctx, TestGraph runtimeGraph)
-        {
-            runtimeGraph.startNodes = GetNodes()
-                .OfType<StartEditorNode>()
-                .Select(node => node.GetRuntimeNode(ctx))
-                .ToList();
-        }
-
     }
+    
+    [Serializable, Node(null, null, "Math Node"), UseWithGraph(typeof(TestEditorGraph))]
+    public class MathEditorNode : ExampleNodes.Editor.MathEditorNode {}
+    
+    [Serializable, Node(null, null, "Logic Node"), UseWithGraph(typeof(TestEditorGraph))]
+    public class LogicEditorNode : ExampleNodes.Editor.LogicEditorNode {}
+    
+    [Serializable, Node(null, null, "Comparison Node"), UseWithGraph(typeof(TestEditorGraph))]
+    public class ComparisonEditorNode : ExampleNodes.Editor.ComparisonEditorNode {}
+    
+    [Serializable, Node(null, null, "Split Node"), UseWithGraph(typeof(TestEditorGraph))]
+    public class SplitEditorNode : ExampleNodes.Editor.SplitEditorNode {}
 }

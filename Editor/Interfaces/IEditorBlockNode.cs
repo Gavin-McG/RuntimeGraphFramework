@@ -1,6 +1,6 @@
 ﻿namespace RuntimeGraphFramework.Editor
 {
-    public interface IEditorBlockNode<out TRuntimeNode> : IEditorNode<TRuntimeNode>
+    internal interface IEditorBlockNode<out TRuntimeNode> : IEditorNode<TRuntimeNode>
     {
         
     }

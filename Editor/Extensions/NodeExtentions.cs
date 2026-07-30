@@ -96,38 +96,14 @@ namespace RuntimeGraphFramework.Editor
             return set.ToList();
         }
 
-        public static RuntimeNode GetRuntimeNode(this INode node, GraphImportContext context)
+        internal static IEditorNode<RuntimeNode> AsEditorNode(this INode node, GraphImportContext context) => node switch
         {
-            if (node == null) return null;
-
-            // IEditorNode
-            if (node is IEditorNode<RuntimeNode> editorNode)
-            {
-                return editorNode.GetRuntimeNode(context);
-            }
-            
-            // IConstantNode
-            if (node is IConstantNode constantNode)
-            {
-                var editorConstantNode = context.GetConstantNode(constantNode);
-                return editorConstantNode.GetRuntimeNode(context);
-            }
-
-            // IVariableNode
-            if (node is IVariableNode variableNode)
-            {
-                var editorVariableNode = context.GetVariableNode(variableNode);
-                return editorVariableNode.GetRuntimeNode(context);
-            }
-
-            // ISubgraphNode
-            if (node is ISubgraphNode subgraphNode)
-            {
-                var editorSubgraphNode = context.GetSubgraphNode(subgraphNode);
-                return editorSubgraphNode.GetRuntimeNode(context);
-            }
-
-            throw new ArgumentException($"Node type is not supported: {node.GetType()}");
-        }
+            null => null,
+            IEditorNode<RuntimeNode> editorNode => editorNode,
+            IConstantNode constantNode => context.GetConstantNode(constantNode),
+            IVariableNode variableNode => context.GetVariableNode(variableNode),
+            ISubgraphNode subgraphNode => context.GetSubgraphNode(subgraphNode),
+            _ => throw new ArgumentException($"Node type is not supported: {node.GetType()}")
+        };
     }
 }

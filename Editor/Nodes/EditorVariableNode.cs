@@ -16,7 +16,7 @@ namespace RuntimeGraphFramework.Editor
             _variableNode = variableNode;
         }
 
-        private EditorNodeModel<RuntimeVariableNode> NodeModel
+        private IEditorNode<RuntimeVariableNode> NodeModel
         {
             get {
                 if (_nodeModel == null) _nodeModel = new EditorNodeModel<RuntimeVariableNode>(this);
@@ -43,12 +43,15 @@ namespace RuntimeGraphFramework.Editor
             };
             node.outputPort = editorPort.GetRuntimePortReference(context);
             node.variableName = _variableNode.Variable.Name;
+            node.variableKind = variable.GetRuntimeVariableKind();
         }
         
         // IEditorNode definitions
-        public bool IsCreated => NodeModel.IsCreated;
+        public RuntimeVariableNode RuntimeNode => NodeModel.RuntimeNode;
         public void ClearData() => NodeModel.ClearData();
-        public RuntimeVariableNode GetRuntimeNode(GraphImportContext context) => NodeModel.GetRuntimeNode(context);
+        void IEditorNode<RuntimeVariableNode>.CreateRuntimeNode(GraphImportContext context) => NodeModel.CreateRuntimeNode(context);
+        void IEditorNode<RuntimeVariableNode>.ConnectRuntimeNode(GraphImportContext context) => NodeModel.ConnectRuntimeNode(context);
+        void IEditorNode<RuntimeVariableNode>.InitializeRuntimeNode(GraphImportContext context) {}
         public bool TryGetInputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetInputPortIndex(port, out portIndex);
         public bool TryGetOutputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetOutputPortIndex(port, out portIndex);
     }

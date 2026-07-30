@@ -41,22 +41,6 @@ namespace RuntimeGraphFramework.Editor
             return runtimePort;
         }
         
-        private static VariableRuntimePort CreateVariablePort(this IPort port, GraphImportContext context, RuntimeNode node, IVariable variable)
-        {
-            var portType = typeof(VariableRuntimePort<,>).MakeGenericType(variable.GetType(), context.GraphType);
-            var constructorArguments = new object[]
-            {
-                port.Name,
-                port.GetIndex(),
-                port.ID,
-                RuntimePortDirection.Input,
-                node,
-                variable.Name,
-            };
-            
-            return Activator.CreateInstance(portType, constructorArguments) as VariableRuntimePort;
-        }
-
         private static InputRuntimePort CreateInputPort(this IPort port, GraphImportContext context, RuntimeNode node, object value)
         {
             var portType = typeof(InputRuntimePort<,>).MakeGenericType(port.DataType, context.GraphType);
@@ -88,13 +72,13 @@ namespace RuntimeGraphFramework.Editor
             return Activator.CreateInstance(portType, constructorArguments) as OutputRuntimePort;
         }
         
-        public static RuntimePort CreateRuntimePort(this IPort port, GraphImportContext context)
+        internal static RuntimePort CreateRuntimePort(this IPort port, GraphImportContext context)
         {
             if (port == null) return null;
 
             // UnTyped Port
             var node = port.GetNode();
-            var runtimeNode = node.GetRuntimeNode(context);
+            var runtimeNode = node.AsEditorNode(context).RuntimeNode;
             if (port.DataType == typeof(Untyped))
             {
                 return CreateUntypedPort(port, context, runtimeNode);
@@ -121,13 +105,16 @@ namespace RuntimeGraphFramework.Editor
             }
         }
 
+        /// <summary>
+        /// Retrieves a Reference to the Runtime representation of a GTK Port
+        /// </summary>
         public static RuntimePortReference GetRuntimePortReference(this IPort port, GraphImportContext context)
         {
             if (port == null) return default;
             
             // Get  Node
             var node = port.GetNode();
-            var runtimeNode = node.GetRuntimeNode(context);
+            var runtimeNode = node.AsEditorNode(context).RuntimeNode;
             switch (port.Direction)
             {
                 // Input Port Reference

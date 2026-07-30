@@ -16,7 +16,7 @@ namespace RuntimeGraphFramework.Editor
             _node = node;
         }
 
-        private EditorNodeModel<RuntimeMissingNode> NodeModel
+        private IEditorNode<RuntimeMissingNode> NodeModel
         {
             get {
                 if (_nodeModel == null) _nodeModel = new EditorNodeModel<RuntimeMissingNode>(this);
@@ -35,9 +35,11 @@ namespace RuntimeGraphFramework.Editor
         }
         
         // IEditorNode definitions
-        public bool IsCreated => NodeModel.IsCreated;
+        public RuntimeMissingNode RuntimeNode => NodeModel.RuntimeNode;
         public void ClearData() => NodeModel.ClearData();
-        public RuntimeMissingNode GetRuntimeNode(GraphImportContext context) => NodeModel.GetRuntimeNode(context);
+        void IEditorNode<RuntimeMissingNode>.CreateRuntimeNode(GraphImportContext context) => NodeModel.CreateRuntimeNode(context);
+        void IEditorNode<RuntimeMissingNode>.ConnectRuntimeNode(GraphImportContext context) => NodeModel.ConnectRuntimeNode(context);
+        void IEditorNode<RuntimeMissingNode>.InitializeRuntimeNode(GraphImportContext context) {}
         public bool TryGetInputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetInputPortIndex(port, out portIndex);
         public bool TryGetOutputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetOutputPortIndex(port, out portIndex);
     }

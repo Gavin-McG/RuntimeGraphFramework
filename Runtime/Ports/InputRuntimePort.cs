@@ -6,7 +6,7 @@ using UnityEngine;
 namespace RuntimeGraphFramework
 {
     [Serializable]
-    public abstract class InputRuntimePort : RuntimePort
+    internal abstract class InputRuntimePort : RuntimePort
     {
         protected InputRuntimePort(
             string name, int index, Hash128 id, RuntimePortDirection direction, RuntimeNode node)
@@ -14,9 +14,8 @@ namespace RuntimeGraphFramework
     }
     
     [Serializable]
-    public class InputRuntimePort<TInput, TGraph> : InputRuntimePort
+    internal class InputRuntimePort<TInput, TGraph> : InputRuntimePort
     {
-        [SerializeField] private List<RuntimePortReference> _connections = new();
         [SerializeField] private TInput _value;
 
         public InputRuntimePort(string name, int index, Hash128 id, RuntimePortDirection direction, RuntimeNode node)
@@ -32,25 +31,41 @@ namespace RuntimeGraphFramework
         }
 
         public override Type DataType => typeof(TInput);
-        public override bool IsConnected => _connections.Count > 0;
-        public override IRuntimePort FirstConnectedPort => _connections.FirstOrDefault();
         
-        public override void Connect(RuntimePortReference portReference)
+        public override bool TryGetValue<T>(out T value)
         {
-            _connections.Add(portReference);
+            // Check if types can assign 
+            if (typeof(T).IsAssignableFrom(_value.GetType()))
+            {
+                value = (T)(object)_value;
+                return true;
+            }
+    
+            value = default;
+            return false;
         }
         
-        public override bool TryGetValue<T>(IQueryContext context, out T value)
+        public override bool TryGetNodeInput<T>(IQueryContext context, out T value)
         {
-            if (IsConnected) return FirstConnectedPort.TryGetValue(context, out value);
-            return PortTypeCastManager.TryCastValue<TInput, T, TGraph>(_value, out value);
+            if (IsConnected && FirstConnectedPort.TryGetNodeInput(context, out value)) return true;
+            return TryGetValue(out value);
+        }
+        
+        internal override bool TrySetValue<T>(T value)
+        {
+            // Check if types can assign 
+            if (typeof(TInput).IsAssignableFrom(typeof(T)))
+            {
+                _value = (TInput)(object)value;
+                return true;
+            }
+            
+            return false;
         }
 
-        public override bool TrySetValue<T>(IQueryContext context, T value)
+        public override bool TrySetNodeOutput<T>(IQueryContext context, T value)
         {
-            if (!PortTypeCastManager.TryCastValue<T, TInput, TGraph>(value, out var castedValue)) return false;
-            _value = castedValue;
-            return true;
+            return false;
         }
     }
 }

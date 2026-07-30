@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -35,10 +36,15 @@ namespace RuntimeGraphFramework
         
         private static readonly Dictionary<LookupKey, Func<object, object>> _casts = new();
 
-        [RuntimeInitializeOnLoadMethod]
         public static void ClearCasts()
         {
             _casts.Clear();
+        }
+
+        public static void ClearCasts(Type graphType)
+        {
+            var removeKeys = _casts.Keys.Where(key => key.GraphType == graphType);
+            foreach (LookupKey key in removeKeys) _casts.Remove(key);
         }
         
         private static bool Validate(MethodInfo method, Type inputType, Type outputType)

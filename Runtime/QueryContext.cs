@@ -1,16 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RuntimeGraphFramework
 {
-    public class BlankQueryContext : IQueryContext
+    public class QueryStackEntry
+    {
+        public RuntimeSubgraphNode node;
+        public Hash128 queryID;
+    }
+    
+    public class QueryContext : IQueryContext
     {
         private static readonly System.Random rng = new();
 
         public GameObject gameObject => null;
         public Hash128 QueryID { get; private set; }
 
-        public BlankQueryContext()
+        public QueryContext()
         {
             RefreshQueryID();
         }

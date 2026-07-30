@@ -13,9 +13,12 @@ namespace RuntimeGraphFramework
         [SerializeField] public SubgraphType subgraphType;
         [SerializeField] public RuntimeGraph subgraph;
         
-        protected override void UpdateNodeOutputs(IQueryContext context)
+        protected override bool TryUpdateOutputs(IQueryContext context)
         {
-            //TODO
+            context.EnterGraph(this);
+            
+            context.ExitGraph();
+            return true;
         }
     }
 }

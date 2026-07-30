@@ -17,7 +17,7 @@ namespace RuntimeGraphFramework.Editor
             _subgraphNode = subgraphNode;
         }
 
-        private EditorNodeModel<RuntimeSubgraphNode> NodeModel
+        private IEditorNode<RuntimeSubgraphNode> NodeModel
         {
             get {
                 if (_nodeModel == null) _nodeModel = new EditorNodeModel<RuntimeSubgraphNode>(this);
@@ -59,9 +59,11 @@ namespace RuntimeGraphFramework.Editor
         }
         
         // IEditorNode definitions
-        public bool IsCreated => NodeModel.IsCreated;
+        public RuntimeSubgraphNode RuntimeNode => NodeModel.RuntimeNode;
         public void ClearData() => NodeModel.ClearData();
-        public RuntimeSubgraphNode GetRuntimeNode(GraphImportContext context) => NodeModel.GetRuntimeNode(context);
+        void IEditorNode<RuntimeSubgraphNode>.CreateRuntimeNode(GraphImportContext context) => NodeModel.CreateRuntimeNode(context);
+        void IEditorNode<RuntimeSubgraphNode>.ConnectRuntimeNode(GraphImportContext context) => NodeModel.ConnectRuntimeNode(context);
+        void IEditorNode<RuntimeSubgraphNode>.InitializeRuntimeNode(GraphImportContext context) {}
         public bool TryGetInputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetInputPortIndex(port, out portIndex);
         public bool TryGetOutputPortIndex(IPort port, out int portIndex) => NodeModel.TryGetOutputPortIndex(port, out portIndex);
     }

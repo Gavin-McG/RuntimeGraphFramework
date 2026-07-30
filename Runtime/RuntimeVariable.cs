@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RuntimeGraphFramework
@@ -9,16 +10,12 @@ namespace RuntimeGraphFramework
         [SerializeField] private string _name;
         [SerializeField] private RuntimeGraph _graph;
         [SerializeField] private Hash128 _id;
-        [SerializeField] private RuntimeVariableKind _variableKind;
+        [SerializeField] private RuntimeVariableKind _kind;
         [SerializeReference] private ValueWrapper _valueWrapper;
+        [SerializeField] private List<RuntimeNode> _nodes = new();
 
-        public RuntimeVariable(string name, RuntimeGraph graph, Hash128 id, RuntimeVariableKind variableKind, object value)
+        private void SetValueWrapper(object value)
         {
-            _name = name;
-            _graph = graph;
-            _id = id;
-            _variableKind = variableKind;
-            
             if (value == null)
             {
                 _valueWrapper = null;
@@ -30,21 +27,49 @@ namespace RuntimeGraphFramework
             }
         }
 
+        public RuntimeVariable(string name, RuntimeGraph graph, object defaultValue, RuntimeVariableKind kind)
+        {
+            _name = name;
+            _graph = graph;
+            _id = default; //TODO
+            _kind = kind;
+            
+            SetValueWrapper(defaultValue);
+        }
+        
+        public RuntimeVariable(string name, RuntimeGraph graph, object defaultValue, RuntimeVariableKind kind, Hash128 id)
+        : this(name, graph, defaultValue, kind)
+        {
+            _id = id;
+        }
+        
         public string Name => _name;
         public Type DataType => _valueWrapper?.DataType;
         public RuntimeGraph Graph => _graph;
         public Hash128 ID => _id;
-        public RuntimeVariableKind VariableKind => _variableKind;
+        public RuntimeVariableKind VariableKind => _kind;
+        public int NodeCount => _nodes.Count;
+        
+        // Public methods
+        public IEnumerable<IRuntimeNode> GetNodes() => _nodes;
 
         public bool TryGetDefaultValue<T>(out T defaultValue)
         {
-            if (DataType == typeof(T))
-            {
-                defaultValue = default;
-                return false;
-            }
-            
-            return _valueWrapper.TryGetValue<T>(out defaultValue);
+            return _valueWrapper.TryGetValue(out defaultValue);
+        }
+
+        // Internal methods
+        internal bool TrySetDefaultValue<T>(ref T defaultValue)
+        {
+            SetValueWrapper(defaultValue);
+            return true;
+        }
+        
+        internal void AddNode(RuntimeNode node) => _nodes.Add(node);
+
+        internal void RemoveFromGraph(bool forceRemove)
+        {
+            Graph.RemoveVariable(this, forceRemove);
         }
     }
 }

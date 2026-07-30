@@ -30,9 +30,9 @@ namespace RuntimeGraphFramework.Editor
             return new RuntimeVariable(
                 variable.Name, 
                 context.Graph, 
-                variable.ID, 
-                variable.GetRuntimeVariableKind(), 
-                defaultValue);
+                defaultValue,
+                variable.GetRuntimeVariableKind(),
+                variable.ID);
         }
     }
 }
