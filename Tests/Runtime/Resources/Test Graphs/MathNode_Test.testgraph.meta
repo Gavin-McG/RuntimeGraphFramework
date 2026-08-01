@@ -9,4 +9,4 @@ ScriptedImporter:
   assetBundleVariant: 
   script: {fileID: 11500000, guid: f2578d603c8b4f1e8141c7109c1c88bf, type: 3}
   DebugMode: 0
-  DeveloperMode: 1
+  DeveloperMode: 0

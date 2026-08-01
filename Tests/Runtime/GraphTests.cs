@@ -120,5 +120,39 @@ namespace RuntimeGraphFramework.Tests
             Assert.IsTrue(graph.TryGetGraphOutput(context, "output", out float output));
             Assert.AreEqual(15, output);
         }
+        
+        /// <summary>
+        /// Test Multiple nested subgraphs
+        /// </summary>
+        [Test]
+        public static void NestedLocalSubgraph_Test()
+        {
+            var graph = LoadGraph("NestedLocalSubgraph_Test");
+            
+            var context = new QueryContext(graph);
+            Assert.IsTrue(graph.TryGetGraphOutput(context, "output", out float output));
+            Assert.AreEqual(20, output);
+        }
+
+        [Test]
+        public static void MultipleSubgraphOutputs_Test()
+        {
+            var graph = LoadGraph("MultipleSubgraphOutputs_Test");
+            
+            var context = new QueryContext(graph);
+            Assert.IsTrue(graph.TryGetGraphOutput(context, "output", out float output));
+            Assert.AreEqual(65, output);
+        }
+
+        [Test]
+        public static void AssetSubgraph_Test()
+        {
+            var graph = LoadGraph("AssetSubgraph_Test");
+            
+            var context = new QueryContext(graph);
+            Assert.IsTrue(graph.TryGetGraphOutput(context, "output", out float output));
+            Assert.AreEqual(-5, output);
+        }
+        
     }
 }
