@@ -105,5 +105,11 @@ namespace RuntimeGraphFramework.Editor
             ISubgraphNode subgraphNode => context.GetSubgraphNode(subgraphNode),
             _ => throw new ArgumentException($"Node type is not supported: {node.GetType()}")
         };
+
+        public static RuntimeNode GetRuntimeNode(this INode node, GraphImportContext context)
+        {
+            var editorNode = node.AsEditorNode(context);
+            return editorNode.RuntimeNode;
+        }
     }
 }
