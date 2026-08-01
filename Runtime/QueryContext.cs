@@ -7,71 +7,69 @@ namespace RuntimeGraphFramework
     internal class QueryStackEntry
     {
         private readonly RuntimeSubgraphNode _node;
+        private readonly RuntimeGraph _graph;
         private readonly Dictionary<string, object> _inputs = new();
+        private readonly Dictionary<Hash128, object> _portValues = new();
         
         public RuntimeSubgraphNode Node => _node;
-        public RuntimeGraph Graph => _node.Graph;
-        public Hash128 QueryID { get; set; }
+        public RuntimeGraph Graph => _graph;
 
-        public QueryStackEntry(RuntimeSubgraphNode node, Hash128 queryID)
+        public QueryStackEntry(RuntimeSubgraphNode node)
         {
             _node = node;
-            QueryID = queryID;
+            _graph = node.Graph;
         }
 
-        public bool TrySetInput(string inputName, object value)
+        public QueryStackEntry(RuntimeGraph graph)
+        {
+            _node = null;
+            _graph = graph;
+        }
+
+        public void SetInput(string inputName, object value)
         {
             _inputs[inputName] = value;
-            return true;
         }
         
         public bool TryGetInput(string inputName, out object value)
         {
             return _inputs.TryGetValue(inputName, out value);
         }
+
+        public void ClearPortOutputs()
+        {
+            _portValues.Clear();
+        }
+
+        public void SetPortOutput(Hash128 portID, object value)
+        {
+            _portValues[portID] = value;
+        }
+
+        public bool TryGetPortOutput(Hash128 portID, out object value)
+        {
+            return _portValues.TryGetValue(portID, out value);
+        }
     }
     
     public class QueryContext : IQueryContext
     {
-        private static readonly System.Random rng = new();
-        
         private RuntimeGraph _mainGraph;
-        private Hash128 _mainQueryID;
         private Stack<QueryStackEntry> stack = new();
         private Dictionary<string, object> variables = new();
 
         public RuntimeGraph MainGraph => _mainGraph;
-        public RuntimeGraph CurrentGraph => stack.Count>0 ? stack.Peek().Graph : _mainGraph;
-        public Hash128 QueryID => stack.Count>0 ? stack.Peek().QueryID : _mainQueryID;
+        public RuntimeGraph CurrentGraph => stack.Peek().Graph;
 
         public QueryContext(RuntimeGraph mainGraph)
         {
             _mainGraph = mainGraph;
-            _mainQueryID = GenerateQueryID();
-        }
-
-        private Hash128 GenerateQueryID()
-        {
-            return new Hash128(
-                (uint)rng.Next(),
-                (uint)rng.Next(),
-                (uint)rng.Next(),
-                (uint)rng.Next()
-            );
-        }
-
-        public void RefreshQueryID()
-        {
-            _mainQueryID = GenerateQueryID();
-            foreach (var entry in stack)
-            {
-                entry.QueryID = GenerateQueryID();
-            }
+            stack.Push(new QueryStackEntry(mainGraph));
         }
         
         public void EnterGraph(RuntimeSubgraphNode subgraphNode)
         {
-            stack.Push(new QueryStackEntry(subgraphNode, GenerateQueryID()));
+            stack.Push(new QueryStackEntry(subgraphNode));
         }
 
         public void ExitGraph()
@@ -79,43 +77,43 @@ namespace RuntimeGraphFramework
             stack.Pop();
         }
         
-        public bool TryGetVariable<T>(string variableName, out T value)
+        public void SetVariable(string variableName, object value)
         {
-            RefreshQueryID();
-            
-            value = default;
-
-            if (!variables.TryGetValue(variableName, out object variableValue)) return false;
-            if (!typeof(T).IsAssignableFrom(variableValue.GetType())) return false;
-            
-            value = (T)variableValue;
-            return true;
+            ClearPortOutputs();
+            variables[variableName] = value;
         }
         
-        public bool TrySetVariable<T>(string variableName, T value)
+        public bool TryGetVariable(string variableName, out object value)
         {
-            variables[variableName] = value;
-            return true;
+            return variables.TryGetValue(variableName, out value);
+        }
+        
+        public void SetInput(string inputName, object value)
+        {
+            stack.Peek().SetInput(inputName, value);
         }
 
-        public bool TryGetInput<T>(string inputName, out T value)
+        public bool TryGetInput(string inputName, out object value)
         {
-            value = default;
-            if (stack.Count == 0) return false;
-            
-            if (!stack.Peek().TryGetInput(inputName, out var inputValue)) return false;
-            if (!typeof(T).IsAssignableFrom(inputValue.GetType())) return false;
-            
-            value = (T)inputValue;
-            return true;
+            return stack.Peek().TryGetInput(inputName, out value);
         }
 
-        public bool TrySetInput<T>(string inputName, T value)
+        public void ClearPortOutputs()
         {
-            RefreshQueryID();
+            foreach (var entry in stack)
+            {
+                entry.ClearPortOutputs();
+            }
+        }
 
-            if (stack.Count == 0) return false;
-            return stack.Peek().TrySetInput(inputName, value);
+        public void SetPortOutput(Hash128 portID, object value)
+        {
+            stack.Peek().SetPortOutput(portID, value);
+        }
+
+        public bool TryGetPortOutput(Hash128 portID, out object value)
+        {
+            return stack.Peek().TryGetPortOutput(portID, out value);
         }
     }
 }

@@ -14,7 +14,6 @@ namespace RuntimeGraphFramework
     {
         string Name { get; }
         Hash128 ID { get; }
-        Type DataType { get; }
         RuntimePortDirection Direction { get; }
         bool IsConnected { get; }
         IRuntimePort FirstConnectedPort { get; }

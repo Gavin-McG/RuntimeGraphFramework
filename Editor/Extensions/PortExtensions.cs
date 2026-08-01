@@ -31,45 +31,34 @@ namespace RuntimeGraphFramework.Editor
         
         private static UntypedRuntimePort CreateUntypedPort(this IPort port, GraphImportContext context, RuntimeNode node)
         {
-            var runtimePort = new UntypedRuntimePort(
+            return new UntypedRuntimePort(
                 port.Name, 
                 port.GetIndex(), 
                 port.ID, 
                 port.GetRuntimeDirection(), 
                 node);
-            
-            return runtimePort;
         }
         
         private static InputRuntimePort CreateInputPort(this IPort port, GraphImportContext context, RuntimeNode node, object value)
         {
-            var portType = typeof(InputRuntimePort<,>).MakeGenericType(port.DataType, context.GraphType);
-            var constructorArguments = new object[]
-            {
+            return new InputRuntimePort(
                 port.Name,
                 port.GetIndex(),
                 port.ID,
                 RuntimePortDirection.Input,
                 node,
-                value,
-            };
-            
-            return Activator.CreateInstance(portType, constructorArguments) as InputRuntimePort;
+                value);
         }
 
         private static OutputRuntimePort CreateOutputPort(this IPort port, GraphImportContext context, RuntimeNode node)
         {
-            var portType = typeof(OutputRuntimePort<,>).MakeGenericType(port.DataType, context.GraphType);
-            var constructorArguments = new object[]
-            {
+            return new OutputRuntimePort(
                 port.Name,
                 port.GetIndex(),
                 port.ID,
                 RuntimePortDirection.Output,
                 node
-            };
-            
-            return Activator.CreateInstance(portType, constructorArguments) as OutputRuntimePort;
+            );
         }
         
         internal static RuntimePort CreateRuntimePort(this IPort port, GraphImportContext context)

@@ -4,8 +4,8 @@ namespace RuntimeGraphFramework
 {
     public class RuntimeConstantNode : RuntimeNode
     {
-        [SerializeField] public RuntimePortReference _outputPort;
-        [SerializeReference] public ValueWrapper _valueWrapper;
+        [SerializeField] internal RuntimePortReference _outputPort;
+        [SerializeReference] internal ValueWrapper _valueWrapper;
         
         protected override bool TryUpdateOutputs(IQueryContext context)
         {

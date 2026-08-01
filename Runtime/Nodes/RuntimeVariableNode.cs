@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Unity.GraphToolkit.Editor;
 using UnityEngine;
 
 namespace RuntimeGraphFramework
@@ -29,7 +28,8 @@ namespace RuntimeGraphFramework
             // Get Input
             if (variableKind == RuntimeVariableKind.Input)
             {
-                if (!context.TryGetInput(variableName, out IVariable input)) return false;
+                var variable = Graph.GetVariable(variableName);
+                if (!context.TryGetInput(variable.ID.ToString(), out object input)) return false;
                 return outputPort.TrySetNodeOutput(context, input);
             }
             

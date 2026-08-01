@@ -4,28 +4,36 @@ using UnityEngine;
 namespace RuntimeGraphFramework
 {
     [Serializable]
-    public abstract class ValueWrapper
+    internal abstract class ValueWrapper
     {
         public abstract Type DataType { get; }
         public abstract bool TryGetValue<T>(out T value);
         public abstract bool TrySetValue<T>(T value);
+
+        public static ValueWrapper CreateWrapper(object value)
+        {
+            if (value == null) return null;
+            var wrapperType = typeof(ValueWrapper<>).MakeGenericType(value.GetType());
+            var wrapper = (ValueWrapper)Activator.CreateInstance(wrapperType, value);
+            return wrapper;
+        }
     }
 
     [Serializable]
-    public class ValueWrapper<U> : ValueWrapper
+    internal class ValueWrapper<TValue> : ValueWrapper
     {
-        [SerializeField] private U _value;
+        [SerializeField] private TValue _value;
             
-        public override Type DataType => typeof(U);
+        public override Type DataType => typeof(TValue);
             
-        public ValueWrapper(U value)
+        public ValueWrapper(TValue value)
         {
             _value = value;
         }
             
         public override bool TryGetValue<T>(out T value)
         {
-            if (typeof(T).IsAssignableFrom(typeof(U)))
+            if (typeof(T).IsAssignableFrom(typeof(TValue)))
             {
                 value = (T)(object)_value;
                 return true;
@@ -37,9 +45,9 @@ namespace RuntimeGraphFramework
 
         public override bool TrySetValue<T>(T value)
         {
-            if (typeof(U).IsAssignableFrom(typeof(T)))
+            if (typeof(TValue).IsAssignableFrom(typeof(T)))
             {
-                _value = (U)(object)value;
+                _value = (TValue)(object)value;
                 return true;
             }
             

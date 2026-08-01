@@ -10,8 +10,6 @@ namespace RuntimeGraphFramework
     {
         public UntypedRuntimePort(string name, int index, Hash128 id, RuntimePortDirection direction, RuntimeNode node)
             : base(name, index, id, direction, node) {}
-
-        public override Type DataType => null;
         
         public override bool TryGetValue<T>(out T value)
         {

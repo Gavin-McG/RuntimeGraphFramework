@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace RuntimeGraphFramework
@@ -13,33 +14,46 @@ namespace RuntimeGraphFramework
     {
         [SerializeField] public SubgraphType subgraphType;
         [SerializeField] public RuntimeGraph subgraph;
-
-        private Dictionary<string, object> inputTemp = new();
+        
+        private readonly Dictionary<string, object> inputValues = new();
+        private readonly Dictionary<string, object> outputValues = new();
         
         protected override bool TryUpdateOutputs(IQueryContext context)
         {
-            // Get inputs to node
-            inputTemp.Clear();
-            inputPorts.ForEach(port =>
+            // Get the Inputs of the Subgraph node
+            inputValues.Clear();
+            foreach (var port in inputPorts)
             {
-                port.TryGetNodeInput(context, out object input);
-                inputTemp.Add(port.Name, input);
-            });
+                if (!port.TryGetNodeInput(context, out object inputValue)) return false;
+                inputValues[port.Name] = inputValue;
+            }
             
             context.EnterGraph(this);
-
-            foreach (var input in inputTemp)
             {
-                context.TrySetInput(input.Key, input.Value);
-            } 
-
-            outputPorts.ForEach(port =>
-            {
-                subgraph.TryGetGraphOutput(context, port.Name, out object output);
-                port.TrySetNodeOutput(context, output);
-            });
-            
+                // Assign the inputs within the subgraph context
+                foreach (var entry in inputValues)
+                {
+                    context.SetInput(entry.Key, entry.Value);
+                }
+                
+                // Get all the outputs of the Subgraph
+                outputValues.Clear();
+                foreach (var port in outputPorts)
+                {
+                    var variable = subgraph.GetVariables().FirstOrDefault(variable => variable.ID.ToString() == port.Name);
+                    if (variable == null) return false;
+                    if (!subgraph.TryGetGraphOutput(context, variable.Name, out object outputValue)) return false;
+                    outputValues[port.Name] = outputValue;
+                }
+            }
             context.ExitGraph();
+
+            // Assign the outputs to the ports of the node
+            foreach (var port in outputPorts)
+            {
+                if (!port.TrySetNodeOutput(context, outputValues[port.Name])) return false;
+            }
+            
             return true;
         }
     }

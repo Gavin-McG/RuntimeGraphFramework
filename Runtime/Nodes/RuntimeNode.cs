@@ -22,17 +22,9 @@ namespace RuntimeGraphFramework
 
         protected virtual bool TryUpdateOutputs(IQueryContext context) => false;
         
-        private Hash128 previousQueryID;
-        private bool previousReturn;
-        
         public bool TryUpdateNode(IQueryContext context)
         {
-            var currentQueryID = context.QueryID;
-            if (previousQueryID == currentQueryID) return previousReturn;
-            
-            previousQueryID = currentQueryID;
-            previousReturn = TryUpdateOutputs(context);
-            return previousReturn;
+            return TryUpdateOutputs(context);
         }
     }
 }

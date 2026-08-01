@@ -4,6 +4,6 @@ using UnityEditor.AssetImporters;
 
 namespace RuntimeGraphFramework.Tests.Editor
 {
-    [ScriptedImporter(1, TestEditorGraph.AssetExtension)]
+    [ScriptedImporter(2, TestEditorGraph.AssetExtension)]
     public class TestGraphImporter : GraphImporter<TestEditorGraph, TestGraph> {}
 }

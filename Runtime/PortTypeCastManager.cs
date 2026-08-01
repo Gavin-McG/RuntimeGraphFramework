@@ -113,7 +113,7 @@ namespace RuntimeGraphFramework
             return _casts.ContainsKey(key);
         }
        
-        public static bool TryCastValue<TInput, TOutput, TGraph>(TInput input, out TOutput output)
+        public static bool TryCastValue<TOutput>(Type graphType, object input, out TOutput output)
         {
             if (input == null)
             {
@@ -122,29 +122,23 @@ namespace RuntimeGraphFramework
             }
             
             // Cast using builtin cast
-            if (typeof(TOutput).IsAssignableFrom(input.GetType()))
+            Type inputType = input.GetType();
+            Type outputType = typeof(TOutput);
+            if (outputType.IsAssignableFrom(inputType))
             {
-                output = (TOutput)(object)input;
+                output = (TOutput)input;
                 return true;
             }
             
-            // Attempt to cast the value using more specific runtime type
-            var runtimeKey = new LookupKey(input.GetType(), typeof(TOutput), typeof(TGraph));
+            // Attempt to cast the value using runtime type of input
+            var runtimeKey = new LookupKey(inputType, outputType, graphType);
             if (_casts.TryGetValue(runtimeKey, out var runtimeFunc))
             {
                 output = (TOutput)runtimeFunc(input);
                 return true;
             }
-
-            // Attempt to cast the value using generic parameter
-            var genericKey = new LookupKey(typeof(TInput), typeof(TOutput), typeof(TGraph));
-            if (_casts.TryGetValue(genericKey, out var genericFunc))
-            {
-                output = (TOutput)genericFunc(input);
-                return true;
-            }
             
-            Debug.LogWarning($"No Port cast Registered from {typeof(TInput).Name} to {typeof(TOutput).Name} for Graph type {typeof(TGraph).Name}.");
+            Debug.LogWarning($"No Port cast Registered from {inputType.Name} to {outputType.Name} for Graph type {graphType.Name}.");
             output = default;
             return false;
         }

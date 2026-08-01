@@ -30,7 +30,6 @@ namespace RuntimeGraphFramework
         public bool IsValid => GetPort() != null;
         public string Name => GetPort()?.Name ?? String.Empty;
         public Hash128 ID => GetPort()?.ID ?? default;
-        public Type DataType => GetPort()?.DataType;
         public RuntimePortDirection Direction => direction;
         public bool IsConnected => GetPort()?.IsConnected ?? false;
         public IRuntimePort FirstConnectedPort => GetPort()?.FirstConnectedPort;

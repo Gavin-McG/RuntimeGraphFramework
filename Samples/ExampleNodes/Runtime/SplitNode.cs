@@ -14,18 +14,19 @@ namespace RuntimeGraphFramework.ExampleNodes
 
         protected override bool TryUpdateOutputs(IQueryContext context)
         {
-            Type vectorType = inputPort.DataType;
+            if (!inputPort.TryGetNodeInput(context, out object input)) return false;
+            Type vectorType = input.GetType();
 
             if (vectorType == typeof(Vector2))
             {
-                if (!inputPort.TryGetNodeInput(context, out Vector2 vector)) return false;
+                var vector = (Vector2)input;
                 return outputPort_x.TrySetNodeOutput(context, vector.x) &&
                        outputPort_y.TrySetNodeOutput(context, vector.y);
             }
 
             if (vectorType == typeof(Vector3))
             {
-                if (!inputPort.TryGetNodeInput(context, out Vector3 vector)) return false;
+                var vector = (Vector3)input;
                 return outputPort_x.TrySetNodeOutput(context, vector.x) &&
                        outputPort_y.TrySetNodeOutput(context, vector.y) &&
                        outputPort_z.TrySetNodeOutput(context, vector.z);
@@ -33,14 +34,14 @@ namespace RuntimeGraphFramework.ExampleNodes
 
             if (vectorType == typeof(Vector4))
             {
-                if (!inputPort.TryGetNodeInput(context, out Vector4 vector)) return false;
+                var vector = (Vector4)input;
                 return outputPort_x.TrySetNodeOutput(context, vector.x) &&
                        outputPort_y.TrySetNodeOutput(context, vector.y) &&
                        outputPort_z.TrySetNodeOutput(context, vector.z) &&
                        outputPort_w.TrySetNodeOutput(context, vector.w);
             }
             
-            throw new NotSupportedException("Invalid input vector type");
+            return false;
         }
     }
 }
